@@ -18,8 +18,17 @@ def _create_token(email, password):
     pass
 
 
+def _login(email, password):
+    token = _create_token(email, password)
+    return token
+
+
+def _bad_request(text=None):
+    return Response(response=json.dumps({'message': text}), status=400)
+
+
 def _unauthorized():
-    return Response(response='You must login first', status=401)
+    return Response(response=json.dumps({'message': u'You must login first'}), status=401)
 
 
 def auth(func):
@@ -32,37 +41,36 @@ def auth(func):
 @app.route("/", methods=['POST'])
 def login():
     params = request.json or request.form.to_dict()
-    result = {}
     if params.get('email'):
-        token = _create_token(email=params.get('email'), password=params.get('password'))
+        token = _login(email=params.get('email'), password=params.get('password'))
         if token is not None:
-            result['token'] = token
-    return jsonify(result)
+            return jsonify(token=token)
+    return _bad_request(text=u'You must provide a proper email/password')
 
 
 @app.route('/', defaults={'path': ''}, methods=['GET'])
 @app.route('/<path:path>', methods=['GET'])
 @auth
-def _get(path):
+def get(path):
     pass
 
 
 @app.route('/', defaults={'path': ''}, methods=['POST'])
 @app.route('/<path:path>', methods=['POST'])
 @auth
-def _post(path):
+def post(path):
     pass
 
 
 @app.route('/', defaults={'path': ''}, methods=['PUT'])
 @app.route('/<path:path>', methods=['PUT'])
 @auth
-def _put(path):
+def put(path):
     pass
 
 
 @app.route('/', defaults={'path': ''}, methods=['DELETE'])
 @app.route('/<path:path>', methods=['DELETE'])
 @auth
-def _delete(path):
+def delete(path):
     pass
