@@ -1,0 +1,9 @@
+#!/usr/bin/env python
+import os
+
+from ApiSDF import app
+
+
+# script_path = os.path.dirname(os.path.realpath(__file__))
+# config_file_path = os.path.join(script_path, 'configs/localhost.cfg')
+app.run(host='0.0.0.0', port=8686, use_reloader=True, debug=True)
