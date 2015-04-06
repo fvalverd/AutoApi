@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -e
+export APISDF_SETTINGS="$(dirname "$(readlink -f "$0")")"/tests.cfg
+echo $APISDF_SETTINGS
+nosetests -s

@@ -24,7 +24,9 @@ setup(
     zip_safe=False,
     install_requires=[
         "Flask==0.10.1",
-        "flask-cors==2.0.0"
+        "flask-cors==2.0.0",
+        "pymongo==2.8",
+        "pyOpenSSL==0.14"
     ],
     entry_points="""
     # -*- Entry points: -*-

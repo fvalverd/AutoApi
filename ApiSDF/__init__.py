@@ -1,76 +1,75 @@
 # -*- coding: utf-8 -*-
-from functools import wraps
 import json
 
+from bson.objectid import ObjectId
 from flask import Flask, Response, request, jsonify
-from flask.ext.cors import CORS
+
+from config import config_app
+from auth import secure, login_and_get_token, logout_and_remove_token
 
 
 app = Flask('ApiSDF')
-CORS(app, resources={r"/*": {"origins": "*"}})
-
-
-def _is_authorized_token():
-    pass
-
-
-def _create_token(email, password):
-    pass
-
-
-def _login(email, password):
-    token = _create_token(email, password)
-    return token
-
-
-def _bad_request(text=None):
-    return Response(response=json.dumps({'message': text}), status=400)
-
-
-def _unauthorized():
-    return Response(response=json.dumps({'message': u'You must login first'}), status=401)
-
-
-def auth(func):
-    @wraps(func)
-    def inner(*args, **kwargs):
-        return func(*args, **kwargs) if _is_authorized_token() else _unauthorized()
-    return inner
+config_app(app)
 
 
 @app.route("/", methods=['POST'])
 def login():
     params = request.json or request.form.to_dict()
     if params.get('email'):
-        token = _login(email=params.get('email'), password=params.get('password'))
+        token = login_and_get_token(app, email=params.get('email'), password=params.get('password'))
         if token is not None:
-            return jsonify(token=token)
-    return _bad_request(text=u'You must provide a proper email/password')
+            return Response(
+                response=json.dumps({'token': token}),
+                headers={'X-Email': params.get('email'), 'X-Token': token}
+            )
+    return Response(response=json.dumps({'message': u'You must provide a proper email/password'}), status=400)
 
 
-@app.route('/', defaults={'path': ''}, methods=['GET'])
+@app.route("/", methods=['DELETE'])
+@secure(app)
+def logout(db):
+    status = logout_and_remove_token(app, db)
+    return jsonify({'ok': status})
+
+
+def _proccess_path(path=''):
+    elements = path.split('/')
+    return len(elements) % 2 == 1, elements
+
+
 @app.route('/<path:path>', methods=['GET'])
-@auth
-def get(path):
-    pass
+@secure(app)
+def get(path, db):
+    is_odd, elements = _proccess_path(path=path)
+    if is_odd:
+        results = db[elements[-1]].find({}).limit(10).skip(0).sort([('_id', -1)])
+        total = results.count()
+        results = [element for element in results]
+        return jsonify({'total': len(results), 'data': results})
+    else:
+        result = db[elements[-2]].find_one({'_id': ObjectId(elements[-1])}) or {}
+        return jsonify(result)
 
 
-@app.route('/', defaults={'path': ''}, methods=['POST'])
 @app.route('/<path:path>', methods=['POST'])
-@auth
-def post(path):
+@secure(app, 'write')
+def post(path, db):
     pass
 
 
-@app.route('/', defaults={'path': ''}, methods=['PUT'])
 @app.route('/<path:path>', methods=['PUT'])
-@auth
-def put(path):
+@secure(app, 'write')
+def put(path, db):
     pass
 
 
-@app.route('/', defaults={'path': ''}, methods=['DELETE'])
+@app.route('/<path:path>', methods=['PATCH'])
+@secure(app, 'write')
+def patch(path, db):
+    pass
+
+
 @app.route('/<path:path>', methods=['DELETE'])
-@auth
-def delete(path):
+@secure(app, 'write')
+def delete(path, db):
     pass
