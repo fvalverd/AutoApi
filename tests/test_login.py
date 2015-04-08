@@ -4,7 +4,7 @@ import unittest
 
 import mock
 
-from base_test import BaseTest
+from utils import BaseTest
 
 
 class TestLogin(BaseTest):

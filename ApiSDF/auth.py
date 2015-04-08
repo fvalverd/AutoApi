@@ -4,7 +4,7 @@ import json
 from functools import wraps
 import uuid
 
-from flask import request, Response
+from flask import jsonify, request
 import OpenSSL
 from pymongo import MongoClient
 
@@ -16,11 +16,10 @@ def secure(app, *roles):
             db, is_authorized = _is_authorized_token_and_get_db(app)
             if is_authorized:
                 kwargs['db'] = db
-                # TODO: auth with X-Email and X-Token headers
                 func_return = func(*args, **kwargs)
                 db.connection.close()
                 return func_return
-            return Response(response=json.dumps({'message': u'You must login first'}), status=401)
+            return jsonify({'message': u'You must login first'}), 401
         return wrapped
     return wrapper
 
@@ -33,12 +32,21 @@ def login_and_get_token(app, email, password):
 
 def logout_and_remove_token(app, db):
     if request.headers.get('X-Email') and request.headers.get('X-Token'):
-        return _remove_token(app, db, email=request.headers.get('X-Email'), token=request.headers.get('X-Token'))
+        return _remove_token(
+            app,
+            db,
+            email=request.headers.get('X-Email'),
+            token=request.headers.get('X-Token')
+        )
     return False
 
 
 def _get_mongo(app):
-    return MongoClient(host=app.config['MONGO_HOST'], port=app.config['MONGO_PORT'])[app.config['APISDF_DB']]
+    client = MongoClient(
+        host=app.config['MONGO_HOST'],
+        port=app.config['MONGO_PORT']
+    )
+    return client[app.config['APISDF_DB']]
 
 
 @contextmanager
@@ -53,7 +61,10 @@ def _admin_manager(app, db=None, logout=True):
 def _is_authorized_token_and_get_db(app):
     with _admin_manager(app, logout=False) as db:
         if request.headers.get('X-Email') and request.headers.get('X-Token'):
-            result = db.command('usersInfo', {'user': request.headers['X-Email'], 'db': app.config['APISDF_DB']})
+            result = db.command(
+                'usersInfo',
+                {'user': request.headers['X-Email'], 'db': app.config['APISDF_DB']}
+            )
             if result and result.get('users', [{}])[0].get('customData', {}).get('token'):
                 return db, request.headers.get('X-Token') == result['users'][0]['customData']['token']
     return None, False

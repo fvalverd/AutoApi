@@ -2,10 +2,11 @@
 import json
 
 from bson.objectid import ObjectId
-from flask import Flask, Response, request, jsonify
+from flask import Flask, jsonify, request, Response
 
-from config import config_app
-from auth import secure, login_and_get_token, logout_and_remove_token
+from ApiSDF.auth import login_and_get_token, logout_and_remove_token, secure
+from ApiSDF.config import config_app
+from ApiSDF.utils import format_result
 
 
 app = Flask('ApiSDF')
@@ -22,7 +23,7 @@ def login():
                 response=json.dumps({'token': token}),
                 headers={'X-Email': params.get('email'), 'X-Token': token}
             )
-    return Response(response=json.dumps({'message': u'You must provide a proper email/password'}), status=400)
+    return jsonify({'message': u'You must provide a proper email/password'}), 400
 
 
 @app.route("/", methods=['DELETE'])
@@ -42,13 +43,22 @@ def _proccess_path(path=''):
 def get(path, db):
     is_odd, elements = _proccess_path(path=path)
     if is_odd:
-        results = db[elements[-1]].find({}).limit(10).skip(0).sort([('_id', -1)])
-        total = results.count()
-        results = [element for element in results]
-        return jsonify({'total': len(results), 'data': results})
+        collection_name = elements[-1]
+        if collection_name in db.collection_names():
+            results = db[collection_name].find({}).limit(10).skip(0).sort([('_id', -1)])
+            total = results.count()
+            results = [format_result(element) for element in results]
+            return jsonify({'total': len(results), collection_name: results})
+        else:
+            return jsonify({'message': u'Collection id not found'}), 404
     else:
-        result = db[elements[-2]].find_one({'_id': ObjectId(elements[-1])}) or {}
-        return jsonify(result)
+        collection_name = elements[-2]
+        resource_id = elements[-1]
+        result = db[collection_name].find_one({'_id': ObjectId(resource_id)})
+        if result is not None:
+            return jsonify(format_result(result))
+        else:
+            return jsonify({'message': u'Resource id not found'}), 404
 
 
 @app.route('/<path:path>', methods=['POST'])
