@@ -31,17 +31,21 @@ class MoviesTest(BaseTest):
     @classmethod
     def setUpClass(cls):
         super(MoviesTest, cls).setUpClass()
+
         # Fixture
-        with _admin_manager(cls.app.application) as db:
+        with _admin_manager(cls.app.application, app.config['APISDF_DB']) as db:
             db.actors.insert(cls.actors)
             cls.actors = [format_result(actor) for actor in cls.actors]
             for movie in cls.movies:
                 movie.update({'actors': [cls.actors[cls.movies.index(movie)]['id']]})
             db.movies.insert(cls.movies)
             cls.movies = [format_result(movie) for movie in cls.movies]
+
         # Login
-        response = cls.app.post('/', data={
-            'email': app.config['APISDF_ADMIN'], 'password': app.config['APISDF_ADMIN_PASS']
+        response = cls.app.post('/login', data={
+            'email': app.config['APISDF_ADMIN'],
+            'password': app.config['APISDF_ADMIN_PASS'],
+            'api': app.config['APISDF_DB'],
         })
         cls.headers = {
             'X-Email': response.headers['X-Email'],
@@ -51,9 +55,11 @@ class MoviesTest(BaseTest):
     @classmethod
     def tearDownClass(cls):
         # Remove fixture
-        with _admin_manager(cls.app.application) as db:
+        with _admin_manager(cls.app.application, app.config['APISDF_DB']) as db:
             db.actors.drop()
             db.movies.drop()
+
         # Logout
-        cls.app.delete('/', headers=cls.headers)
+        cls.app.post('/logout', headers=cls.headers, data={'api': app.config['APISDF_DB']})
+
         super(MoviesTest, cls).tearDownClass()

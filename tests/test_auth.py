@@ -10,30 +10,54 @@ from utils import BaseTest
 class TestAuth(BaseTest):
 
     def test_unauthorized(self):
-        for verb in [self.app.get, self.app.post, self.app.put, self.app.patch, self.app.delete]:
-            response = verb('/movies')
+        for verb in [self.app.get, self.app.post, self.app.put, self.app.delete]:
+            response = verb('/api_tests/movies')
             self.assertEqual(response.status_code, 401)
             response_json = json.loads(response.data or '{}')
-            self.assertDictEqual(response_json, {'message': u'You must be logged'})
+            self.assertDictEqual(
+                response_json,
+                {'message': u'You must be logged in "%s" api' % u'api_tests'}
+            )
 
-    def test_get_after_login(self):
-        data = {'email': 'api_admin', 'password': u'pass'}
-        response = self.app.post('/', data=data)
+    def test_login(self):
+        data = {'email': u'api_admin', 'password': u'pass', 'api': u'api_tests'}
+        response = self.app.post('/login', data=data)
         self.assertEqual(response.status_code, 200)
-        response = self.app.get('/movies', headers=response.headers)
+        response = self.app.get('/api_tests/movies', headers=response.headers)
         self.assertEqual(response.status_code, 200)
 
-    def test_get_after_logout(self):
-        data = {'email': u'api_admin', 'password': u'pass'}
-        response = self.app.post('/', data=data)
+    def test_logout(self):
+        data = {'email': u'api_admin', 'password': u'pass', 'api': u'api_tests'}
+        response = self.app.post('/login', data=data)
         self.assertEqual(response.status_code, 200)
         session_headers = {'X-Email': data['email'], 'X-Token': response.headers['X-Token']}
-        response = self.app.delete('/', headers=session_headers)
+        response = self.app.post('/logout', headers=session_headers, data={'api': 'api_tests'})
         self.assertEqual(response.status_code, 204)
-        response = self.app.get('/movies', headers=session_headers)
+
+    def test_login_but_unauthorized_in_other_api(self):
+        data = {'email': u'api_admin', 'password': u'pass', 'api': u'api_tests'}
+        response = self.app.post('/login', data=data)
+        self.assertEqual(response.status_code, 200)
+        response = self.app.get('/bad_api/movies', headers=response.headers)
         self.assertEqual(response.status_code, 401)
         response_json = json.loads(response.data or '{}')
-        self.assertDictEqual(response_json, {'message': u'You must be logged'})
+        self.assertDictEqual(
+            response_json,
+            {'message': u'You must be logged in "%s" api' % u'bad_api'}
+        )
+
+    def test_logout_but_unauthorized_in_other_api(self):
+        data = {'email': u'api_admin', 'password': u'pass', 'api': u'api_tests'}
+        response = self.app.post('/login', data=data)
+        self.assertEqual(response.status_code, 200)
+        session_headers = {'X-Email': data['email'], 'X-Token': response.headers['X-Token']}
+        response = self.app.post('/logout', headers=session_headers, data={'api': 'bad_api'})
+        self.assertEqual(response.status_code, 401)
+        response_json = json.loads(response.data or '{}')
+        self.assertDictEqual(
+            response_json,
+            {'message': u'You must be logged in "%s" api' % u'bad_api'}
+        )
 
 
 if __name__ == '__main__':

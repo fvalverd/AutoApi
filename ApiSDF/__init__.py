@@ -14,12 +14,13 @@ app = Flask('ApiSDF')
 config_app(app)
 
 
-@app.route("/", methods=['POST'])
+@app.route("/login", methods=['POST'])
 def login():
     params = request.json or request.form.to_dict()
-    if params.get('email'):
+    if params.get('email') and params.get('api'):
         token = login_and_get_token(
             app,
+            params.get('api'),
             email=params.get('email'),
             password=params.get('password')
         )
@@ -31,19 +32,21 @@ def login():
                     'X-Token': token
                 }
             )
-    return jsonify({'message': u'Invalid email/password'}), 400
+    return jsonify({'message': u'Invalid email/password/api'}), 400
 
 
-@app.route("/", methods=['DELETE'])
-@secure(app)
+@app.route("/logout", methods=['POST'])
+@secure(app, logout=True)
 def logout(db):
-    status = logout_and_remove_token(app, db)
-    return jsonify({}), 204
+    params = request.json or request.form.to_dict()
+    if logout_and_remove_token(app, params.get('api'), db):
+        return jsonify({}), 204
+    return jsonify({'message': u'Invalid email/password/api'}), 400
 
 
-@app.route('/<path:path>', methods=['GET'])
+@app.route('/<api>/<path:path>', methods=['GET'])
 @secure(app)
-def get(path, db):
+def get(api, path, db):
     status = 200
     json_to_response = '{}'
     resource_id, collection, conditions = proccess_path(path=path)
@@ -76,9 +79,9 @@ def get(path, db):
     return json_to_response, status
 
 
-@app.route('/<path:path>', methods=['POST'])
-@secure(app, 'write')
-def post(path, db):
+@app.route('/<api>/<path:path>', methods=['POST'])
+@secure(app, role='write')
+def post(api, path, db):
     params = request.json or request.form.to_dict()
     resource_id, collection, data = proccess_path(path=path, params=params)
     if resource_id is None:
@@ -88,7 +91,7 @@ def post(path, db):
             return Response(
                 response=json.dumps({'id': resource_id}),
                 headers={
-                    'Location': '/%s/%s' % (collection, resource_id),
+                    'Location': '/%s/%s/%s' % (api, collection, resource_id),
                 },
                 status=201
             )
@@ -96,19 +99,13 @@ def post(path, db):
         return jsonify({'message': u'Not supported resource creation'}), 405
 
 
-@app.route('/<path:path>', methods=['PUT'])
+@app.route('/<api>/<path:path>', methods=['PUT'])
 @secure(app, 'write')
-def put(path, db):
+def put(api, path, db):
     pass
 
 
-@app.route('/<path:path>', methods=['PATCH'])
+@app.route('/<api>/<path:path>', methods=['DELETE'])
 @secure(app, 'write')
-def patch(path, db):
-    pass
-
-
-@app.route('/<path:path>', methods=['DELETE'])
-@secure(app, 'write')
-def delete(path, db):
+def delete(api, path, db):
     pass

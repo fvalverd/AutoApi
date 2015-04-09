@@ -8,7 +8,7 @@ from utils import MoviesTest
 class TestGetResource(MoviesTest):
 
     def test_get_not_created(self):
-        response = self.app.get('/actors/%s' % self.movies[0]['id'], headers=self.headers)
+        response = self.app.get('/api_tests/actors/%s' % self.movies[0]['id'], headers=self.headers)
         self.assertEqual(response.status_code, 404)
         response_json = json.loads(response.data or '{}')
         self.assertDictContainsSubset(
@@ -17,20 +17,20 @@ class TestGetResource(MoviesTest):
         )
 
     def test_get_invalid_id(self):
-        response = self.app.get('/movies/a1', headers=self.headers)
+        response = self.app.get('/api_tests/movies/a1', headers=self.headers)
         self.assertEqual(response.status_code, 404)
         response_json = json.loads(response.data or '{}')
         self.assertDictContainsSubset({'message': u'Resource "a1" is invalid'}, response_json)
 
     def test_get(self):
-        response = self.app.get('/movies/%s' % self.movies[0]['id'], headers=self.headers)
+        response = self.app.get('/api_tests/movies/%s' % self.movies[0]['id'], headers=self.headers)
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.data or '{}')
         self.assertDictEqual(self.movies[0], response_json)
 
     def test_get_nested(self):
         response = self.app.get(
-            '/actors/%s/movies/%s' % (self.actors[0]['id'], self.movies[0]['id']),
+            '/api_tests/actors/%s/movies/%s' % (self.actors[0]['id'], self.movies[0]['id']),
             headers=self.headers
         )
         self.assertEqual(response.status_code, 200)
@@ -39,7 +39,7 @@ class TestGetResource(MoviesTest):
 
     def test_get_nested_not_found(self):
         response = self.app.get(
-            '/actors/%s/movies/%s' % (self.actors[0]['id'], self.movies[2]['id']),
+            '/api_tests/actors/%s/movies/%s' % (self.actors[0]['id'], self.movies[2]['id']),
             headers=self.headers
         )
         self.assertEqual(response.status_code, 404)
@@ -53,13 +53,13 @@ class TestGetResource(MoviesTest):
 class TestGetCollection(MoviesTest):
 
     def test_get_not_created(self):
-        response = self.app.get('/countries', headers=self.headers)
+        response = self.app.get('/api_tests/countries', headers=self.headers)
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.data or '{}')
         self.assertDictContainsSubset({'total': 0, 'countries': []}, response_json)
 
     def test_get(self):
-        response = self.app.get('/movies', headers=self.headers)
+        response = self.app.get('/api_tests/movies', headers=self.headers)
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.data or '{}')
         self.assertDictContainsSubset({'total': len(self.movies)}, response_json)
@@ -67,7 +67,7 @@ class TestGetCollection(MoviesTest):
         self.assertItemsEqual(self.movies, response_json['movies'])
 
     def test_get_nested(self):
-        response = self.app.get('/actors/%s/movies' % self.actors[0]['id'], headers=self.headers)
+        response = self.app.get('/api_tests/actors/%s/movies' % self.actors[0]['id'], headers=self.headers)
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.data or '{}')
         self.assertDictContainsSubset({'total': 1}, response_json)
