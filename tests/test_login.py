@@ -14,7 +14,7 @@ class TestLogin(BaseTest):
         response = self.app.post('/', data=data)
         self.assertEqual(response.status_code, 400)
         response_json = json.loads(response.data or '{}')
-        self.assertDictContainsSubset({'message': u'You must provide a proper email/password'}, response_json)
+        self.assertDictContainsSubset({'message': u'Invalid email/password'}, response_json)
 
     @mock.patch('ApiSDF.login_and_get_token', return_value=None)
     def test_bad_login_admin(self, login_and_get_token_mock):
@@ -22,7 +22,7 @@ class TestLogin(BaseTest):
         response = self.app.post('/', data=data)
         self.assertEqual(response.status_code, 400)
         response_json = json.loads(response.data or '{}')
-        self.assertDictContainsSubset({'message': u'You must provide a proper email/password'}, response_json)
+        self.assertDictContainsSubset({'message': u'Invalid email/password'}, response_json)
 
     @mock.patch('ApiSDF.auth._create_and_save_token', return_value='MockedToken')
     def test_login_admin(self, _create_and_save_token_mock):

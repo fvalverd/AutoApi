@@ -19,7 +19,7 @@ def secure(app, *roles):
                 func_return = func(*args, **kwargs)
                 db.connection.close()
                 return func_return
-            return jsonify({'message': u'You must login first'}), 401
+            return jsonify({'message': u'You must be logged'}), 401
         return wrapped
     return wrapper
 
@@ -52,7 +52,10 @@ def _get_mongo(app):
 @contextmanager
 def _admin_manager(app, db=None, logout=True):
     db = db or _get_mongo(app)
-    db.authenticate(app.config['APISDF_ADMIN'], app.config['APISDF_ADMIN_PASS'])
+    db.authenticate(
+        app.config['APISDF_ADMIN'],
+        app.config['APISDF_ADMIN_PASS']
+    )
     yield db
     if logout:
         db.logout()
@@ -63,10 +66,15 @@ def _is_authorized_token_and_get_db(app):
         if request.headers.get('X-Email') and request.headers.get('X-Token'):
             result = db.command(
                 'usersInfo',
-                {'user': request.headers['X-Email'], 'db': app.config['APISDF_DB']}
+                {
+                    'user': request.headers['X-Email'],
+                    'db': app.config['APISDF_DB']
+                }
             )
-            if result and result.get('users', [{}])[0].get('customData', {}).get('token'):
-                return db, request.headers.get('X-Token') == result['users'][0]['customData']['token']
+            if result.get('users', [{}])[0].get('customData', {}).get('token'):
+                request_token = request.headers.get('X-Token')
+                user_db_token = result['users'][0]['customData']['token']
+                return db, request_token == user_db_token
     return None, False
 
 

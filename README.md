@@ -1,3 +1,9 @@
+#**About ApiSDF**
+
+http://www.restapitutorial.com/lessons/httpmethods.html
+
+
+#**Develop ApiSDF**
 ### Run api server
 ```
 ./scripts/run_server
@@ -10,7 +16,10 @@
 
 #**Config ApiSDF**
 
+OpenSSL Ubuntu dependencies
+```
 sudo apt-get install libffi-dev libssl-devel
+```
 
 ## Config file
 Fill server.cfg and tests.cfg

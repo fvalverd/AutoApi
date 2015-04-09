@@ -2,4 +2,4 @@
 
 set -e
 export APISDF_SETTINGS="$(dirname "$(readlink -f "$0")")"/tests.cfg
-nosetests -s
+nosetests $@

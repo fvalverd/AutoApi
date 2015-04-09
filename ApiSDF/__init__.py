@@ -2,11 +2,12 @@
 import json
 
 from bson.objectid import ObjectId
+from bson.errors import InvalidId
 from flask import Flask, jsonify, request, Response
 
 from ApiSDF.auth import login_and_get_token, logout_and_remove_token, secure
 from ApiSDF.config import config_app
-from ApiSDF.utils import format_result
+from ApiSDF.utils import format_result, proccess_path
 
 
 app = Flask('ApiSDF')
@@ -17,54 +18,82 @@ config_app(app)
 def login():
     params = request.json or request.form.to_dict()
     if params.get('email'):
-        token = login_and_get_token(app, email=params.get('email'), password=params.get('password'))
+        token = login_and_get_token(
+            app,
+            email=params.get('email'),
+            password=params.get('password')
+        )
         if token is not None:
             return Response(
                 response=json.dumps({'token': token}),
-                headers={'X-Email': params.get('email'), 'X-Token': token}
+                headers={
+                    'X-Email': params.get('email'),
+                    'X-Token': token
+                }
             )
-    return jsonify({'message': u'You must provide a proper email/password'}), 400
+    return jsonify({'message': u'Invalid email/password'}), 400
 
 
 @app.route("/", methods=['DELETE'])
 @secure(app)
 def logout(db):
     status = logout_and_remove_token(app, db)
-    return jsonify({'ok': status})
-
-
-def _proccess_path(path=''):
-    elements = path.split('/')
-    return len(elements) % 2 == 1, elements
+    return jsonify({}), 204
 
 
 @app.route('/<path:path>', methods=['GET'])
 @secure(app)
 def get(path, db):
-    is_odd, elements = _proccess_path(path=path)
-    if is_odd:
-        collection_name = elements[-1]
-        if collection_name in db.collection_names():
-            results = db[collection_name].find({}).limit(10).skip(0).sort([('_id', -1)])
-            total = results.count()
-            results = [format_result(element) for element in results]
-            return jsonify({'total': len(results), collection_name: results})
-        else:
-            return jsonify({'message': u'Collection id not found'}), 404
+    status = 200
+    json_to_response = '{}'
+    resource_id, collection, conditions = proccess_path(path=path)
+    if resource_id is None:
+        cursor = db[collection].find(conditions)
+        cursor = cursor.limit(10).skip(0).sort([('_id', -1)])
+        total = cursor.count()
+        results = [format_result(element) for element in cursor]
+        json_to_response = jsonify({
+            'total': len(results),
+            collection: results
+        })
     else:
-        collection_name = elements[-2]
-        resource_id = elements[-1]
-        result = db[collection_name].find_one({'_id': ObjectId(resource_id)})
-        if result is not None:
-            return jsonify(format_result(result))
+        try:
+            conditions.update({'_id': ObjectId(resource_id)})
+        except InvalidId:
+            json_to_response = jsonify({
+                'message': u'Resource "%s" is invalid' % resource_id
+            })
+            status = 404
         else:
-            return jsonify({'message': u'Resource id not found'}), 404
+            result = db[collection].find_one(conditions)
+            if result is not None:
+                json_to_response = jsonify(format_result(result))
+            else:
+                json_to_response = jsonify({
+                    'message': u'Resource "%s" not found' % resource_id
+                })
+                status = 404
+    return json_to_response, status
 
 
 @app.route('/<path:path>', methods=['POST'])
 @secure(app, 'write')
 def post(path, db):
-    pass
+    params = request.json or request.form.to_dict()
+    resource_id, collection, data = proccess_path(path=path, params=params)
+    if resource_id is None:
+        resource_id = db[collection].insert(data)
+        if resource_id is not None:
+            resource_id = str(resource_id)
+            return Response(
+                response=json.dumps({'id': resource_id}),
+                headers={
+                    'Location': '/%s/%s' % (collection, resource_id),
+                },
+                status=201
+            )
+    else:
+        return jsonify({'message': u'Not supported resource creation'}), 405
 
 
 @app.route('/<path:path>', methods=['PUT'])
