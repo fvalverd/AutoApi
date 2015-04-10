@@ -60,20 +60,24 @@ class TestPost(MoviesTest):
         self.assertDictEqual(movie, response_json)
 
     def test_post_nested(self):
-        movie = {'name': u'From Dusk Till Dawn', 'year': u'1996'}
-        response = self.app.post('/api_tests/actors/%s/movies' % self.actors[2]['id'], headers=self.headers, data=movie)
+        star = {'grade': u'10'}
+        response = self.app.post(
+            '/api_tests/movies/%s/stars' % self.movies[2]['id'],
+            headers=self.headers,
+            data=star
+        )
         self.assertEqual(response.status_code, 201)
         response_json = json.loads(response.data or '{}')
         self.assertIn('id', response_json)
         self.assertIsNotNone(response_json.get('id'))
         self.assertIn('Location', response.headers)
-        self.assertIn('/api_tests/movies/%s' % response_json['id'], response.headers['Location'])
-        movie.update({'id': response_json.get('id')})
-        movie.update({'actors': [self.actors[2]['id']]})
+        self.assertIn('/api_tests/stars/%s' % response_json['id'], response.headers['Location'])
+        star.update({'id': response_json.get('id')})
+        star.update({'movies': [self.movies[2]['id']]})
         response = self.app.get(response.headers['Location'], headers=self.headers)
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.data or '{}')
-        self.assertDictEqual(movie, response_json)
+        self.assertDictEqual(star, response_json)
 
 
 if __name__ == '__main__':

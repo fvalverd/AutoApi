@@ -19,6 +19,20 @@ class TestAuth(BaseTest):
                 {'message': u'You must be logged in "%s" api' % u'api_tests'}
             )
 
+    def test_incomplete_login(self):
+        data = {'password': u'pass'}
+        response = self.app.post('/login', data=data)
+        self.assertEqual(response.status_code, 400)
+        response_json = json.loads(response.data or '{}')
+        self.assertDictContainsSubset({'message': u'Invalid email/password/api'}, response_json)
+
+    def test_login_bad_pass(self):
+        data = {'email': u'api_admin', 'password': u'bad_pass', 'api': 'api_tests'}
+        response = self.app.post('/login', data=data)
+        self.assertEqual(response.status_code, 400)
+        response_json = json.loads(response.data or '{}')
+        self.assertDictContainsSubset({'message': u'Invalid email/password/api'}, response_json)
+
     def test_login(self):
         data = {'email': u'api_admin', 'password': u'pass', 'api': u'api_tests'}
         response = self.app.post('/login', data=data)
