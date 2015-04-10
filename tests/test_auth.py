@@ -2,8 +2,6 @@
 import json
 import unittest
 
-import mock
-
 from utils import BaseTest
 
 
@@ -11,37 +9,37 @@ class TestAuth(BaseTest):
 
     def test_unauthorized(self):
         for verb in [self.app.get, self.app.post, self.app.put, self.app.delete]:
-            response = verb('/api_tests/movies')
+            response = verb('/%s/movies' % self.api)
             self.assertEqual(response.status_code, 401)
             response_json = json.loads(response.data or '{}')
             self.assertDictEqual(
                 response_json,
-                {'message': u'You must be logged in "%s" api' % u'api_tests'}
+                {'message': u'You must be logged in "%s" api' % self.api}
             )
 
     def test_incomplete_login(self):
-        data = {'password': u'pass'}
+        data = {'password': self.password}
         response = self.app.post('/login', data=data)
         self.assertEqual(response.status_code, 400)
         response_json = json.loads(response.data or '{}')
         self.assertDictContainsSubset({'message': u'Invalid email/password/api'}, response_json)
 
     def test_login_bad_pass(self):
-        data = {'email': u'api_admin', 'password': u'bad_pass', 'api': 'api_tests'}
+        data = {'email': self.user, 'password': 'bad_pass', 'api': self.api}
         response = self.app.post('/login', data=data)
         self.assertEqual(response.status_code, 400)
         response_json = json.loads(response.data or '{}')
         self.assertDictContainsSubset({'message': u'Invalid email/password/api'}, response_json)
 
     def test_login(self):
-        data = {'email': u'api_admin', 'password': u'pass', 'api': u'api_tests'}
+        data = {'email': self.user, 'password': self.password, 'api': self.api}
         response = self.app.post('/login', data=data)
         self.assertEqual(response.status_code, 200)
-        response = self.app.get('/api_tests/movies', headers=response.headers)
+        response = self.app.get('/%s/movies' % self.api, headers=response.headers)
         self.assertEqual(response.status_code, 200)
 
     def test_logout(self):
-        data = {'email': u'api_admin', 'password': u'pass', 'api': u'api_tests'}
+        data = {'email': self.user, 'password': self.password, 'api': self.api}
         response = self.app.post('/login', data=data)
         self.assertEqual(response.status_code, 200)
         session_headers = {'X-Email': data['email'], 'X-Token': response.headers['X-Token']}
@@ -49,7 +47,7 @@ class TestAuth(BaseTest):
         self.assertEqual(response.status_code, 204)
 
     def test_login_but_unauthorized_in_other_api(self):
-        data = {'email': u'api_admin', 'password': u'pass', 'api': u'api_tests'}
+        data = {'email': self.user, 'password': self.password, 'api': self.api}
         response = self.app.post('/login', data=data)
         self.assertEqual(response.status_code, 200)
         response = self.app.get('/bad_api/movies', headers=response.headers)
@@ -61,7 +59,7 @@ class TestAuth(BaseTest):
         )
 
     def test_logout_but_unauthorized_in_other_api(self):
-        data = {'email': u'api_admin', 'password': u'pass', 'api': u'api_tests'}
+        data = {'email': self.user, 'password': self.password, 'api': self.api}
         response = self.app.post('/login', data=data)
         self.assertEqual(response.status_code, 200)
         session_headers = {'X-Email': data['email'], 'X-Token': response.headers['X-Token']}

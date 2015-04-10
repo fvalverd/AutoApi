@@ -2,7 +2,7 @@
 import unittest
 
 from ApiSDF import app
-from ApiSDF.auth import _admin_manager
+from ApiSDF.auth import _admin_manager_client
 from ApiSDF.utils import format_result
 
 
@@ -11,10 +11,42 @@ class BaseTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         super(BaseTest, cls).setUpClass()
+        cls.api = 'api_tests'
+        cls.user = 'user'
+        cls.password = 'pass'
         cls.app = app.test_client()
+        with _admin_manager_client(cls.app.application) as client:
+            client[cls.api].add_user(
+                cls.user,
+                cls.password,
+                roles=[
+                    {'role': 'dbOwner', 'db': cls.api}
+                ]
+            )
 
 
-class MoviesTest(BaseTest):
+class LoggedTest(BaseTest):
+
+    @classmethod
+    def setUpClass(cls):
+        super(LoggedTest, cls).setUpClass()
+        response = cls.app.post('/login', data={
+            'email': cls.user,
+            'password': cls.password,
+            'api': cls.api,
+        })
+        cls.headers = {
+            'X-Email': response.headers['X-Email'],
+            'X-Token': response.headers['X-Token']
+        }
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.app.post('/logout', headers=cls.headers, data={'api': cls.api})
+        super(LoggedTest, cls).tearDownClass()
+
+
+class MoviesTest(LoggedTest):
 
     actors = [
         {'name': u'Pam Grier', 'gender': u'famele'},
@@ -31,35 +63,17 @@ class MoviesTest(BaseTest):
     @classmethod
     def setUpClass(cls):
         super(MoviesTest, cls).setUpClass()
-
-        # Fixture
-        with _admin_manager(cls.app.application, app.config['APISDF_DB']) as db:
-            db.actors.insert(cls.actors)
+        with _admin_manager_client(cls.app.application) as client:
+            client[cls.api].actors.insert(cls.actors)
             cls.actors = [format_result(actor) for actor in cls.actors]
             for movie in cls.movies:
                 movie.update({'actors': [cls.actors[cls.movies.index(movie)]['id']]})
-            db.movies.insert(cls.movies)
+            client[cls.api].movies.insert(cls.movies)
             cls.movies = [format_result(movie) for movie in cls.movies]
-
-        # Login
-        response = cls.app.post('/login', data={
-            'email': app.config['APISDF_ADMIN'],
-            'password': app.config['APISDF_ADMIN_PASS'],
-            'api': app.config['APISDF_DB'],
-        })
-        cls.headers = {
-            'X-Email': response.headers['X-Email'],
-            'X-Token': response.headers['X-Token']
-        }
 
     @classmethod
     def tearDownClass(cls):
-        # Remove fixture
-        with _admin_manager(cls.app.application, app.config['APISDF_DB']) as db:
-            db.actors.drop()
-            db.movies.drop()
-
-        # Logout
-        cls.app.post('/logout', headers=cls.headers, data={'api': app.config['APISDF_DB']})
-
+        with _admin_manager_client(cls.app.application) as client:
+            client[cls.api].actors.drop()
+            client[cls.api].movies.drop()
         super(MoviesTest, cls).tearDownClass()

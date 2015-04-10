@@ -37,21 +37,36 @@ def login():
 
 @app.route("/logout", methods=['POST'])
 @secure(app, logout=True)
-def logout(db):
+def logout(mongo_client):
     params = request.json or request.form.to_dict()
-    if logout_and_remove_token(app, params.get('api'), db):
+    if logout_and_remove_token(app, params.get('api')):
         return jsonify({}), 204
     return jsonify({'message': u'Invalid email/password/api'}), 400
 
 
+@app.route("/create_user", methods=['POST'])
+@secure(app, api='admin')
+def create_user(mongo_client):
+    params = request.json or request.form.to_dict()
+    if params.get('email') and params.get('password') and params.get('api'):
+        mongo_client[params.get('api')].add_user(
+            params.get('email'),
+            params.get('password'),
+            roles=[
+                {'role': 'dbOwner', 'db': params.get('api')}
+            ]
+        )
+        return jsonify({}), 201
+
+
 @app.route('/<api>/<path:path>', methods=['GET'])
 @secure(app)
-def get(api, path, db):
+def get(api, path, mongo_client):
     status = 200
     json_to_response = '{}'
     resource_id, collection, conditions = proccess_path(path=path)
     if resource_id is None:
-        cursor = db[collection].find(conditions)
+        cursor = mongo_client[api][collection].find(conditions)
         cursor = cursor.limit(10).skip(0).sort([('_id', -1)])
         total = cursor.count()
         results = [format_result(element) for element in cursor]
@@ -68,7 +83,7 @@ def get(api, path, db):
             })
             status = 404
         else:
-            result = db[collection].find_one(conditions)
+            result = mongo_client[api][collection].find_one(conditions)
             if result is not None:
                 json_to_response = jsonify(format_result(result))
             else:
@@ -81,11 +96,11 @@ def get(api, path, db):
 
 @app.route('/<api>/<path:path>', methods=['POST'])
 @secure(app, role='write')
-def post(api, path, db):
+def post(api, path, mongo_client):
     params = request.json or request.form.to_dict()
     resource_id, collection, data = proccess_path(path=path, params=params)
     if resource_id is None:
-        resource_id = db[collection].insert(data)
+        resource_id = mongo_client[api][collection].insert(data)
         if resource_id is not None:
             resource_id = str(resource_id)
             return Response(
@@ -101,11 +116,11 @@ def post(api, path, db):
 
 @app.route('/<api>/<path:path>', methods=['PUT'])
 @secure(app, 'write')
-def put(api, path, db):
+def put(api, path, mongo_client):
     pass
 
 
 @app.route('/<api>/<path:path>', methods=['DELETE'])
 @secure(app, 'write')
-def delete(api, path, db):
+def delete(api, path, mongo_client):
     pass

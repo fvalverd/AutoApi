@@ -2,37 +2,23 @@
 from pymongo import MongoClient
 from flask.ext.cors import CORS
 
+from ApiSDF.auth import _admin_manager_client
+
 
 class DefaultConfig(object):
-    SECRET_KEY = u'You cannot simultaneously prevent and prepare for war.'
-    APISDF_DB = 'ApiSDF'
-    APISDF_ADMIN = 'api_admin'
-    APISDF_ADMIN_PASS = 'admin'
+    MONGO_HOST = 'localhost'
+    MONGO_PORT = 27017
+    MONGO_ADMIN = 'siteUserAdmin'
+    MONGO_ADMIN_PASS = 'password'
 
 
 def config_app(app):
     CORS(app, resources={r"/*": {"origins": "*"}})
     app.config.from_object(DefaultConfig)
-    try:
-        app.config.from_envvar('APISDF_SETTINGS')
-    except:
-        pass
-    _create_api_admin_user(app)
-
-
-def _create_api_admin_user(app):
-    mongo = MongoClient(
-        host=app.config['MONGO_HOST'],
-        port=app.config['MONGO_PORT']
-    )
-    admin = app.config['MONGO_ADMIN']
-    admin_password = app.config['MONGO_ADMIN_PASS']
-    if mongo.admin.authenticate(admin, admin_password):
-        mongo[app.config['APISDF_DB']].add_user(
-            app.config['APISDF_ADMIN'],
-            app.config['APISDF_ADMIN_PASS'],
-            roles=[
-                {'role': 'dbOwner', 'db': app.config['APISDF_DB']}
-            ]
+    app.config.from_envvar('APISDF_SETTINGS')
+    with _admin_manager_client(app) as client:
+        client.admin.command(
+            'grantRolesToUser',
+            app.config['MONGO_ADMIN'],
+            roles=['readWriteAnyDatabase']
         )
-        mongo[app.config['APISDF_DB']].logout()
