@@ -8,8 +8,8 @@ from ApiSDF.auth import _admin_manager_client
 class DefaultConfig(object):
     MONGO_HOST = 'localhost'
     MONGO_PORT = 27017
-    MONGO_ADMIN = 'siteUserAdmin'
-    MONGO_ADMIN_PASS = 'password'
+    MONGO_ADMIN = 'admin'
+    MONGO_ADMIN_PASS = 'pass'
 
 
 def config_app(app):

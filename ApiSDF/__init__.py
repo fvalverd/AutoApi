@@ -26,7 +26,7 @@ def login():
         )
         if token is not None:
             return Response(
-                response=json.dumps({'token': token}),
+                response=json.dumps({'email': params.get('email'), 'token': token}),
                 headers={
                     'X-Email': params.get('email'),
                     'X-Token': token
@@ -56,46 +56,47 @@ def create_user(mongo_client):
                 {'role': 'dbOwner', 'db': params.get('api')}
             ]
         )
-        return jsonify({}), 201
+        return Response(status=201)
 
 
 @app.route('/<api>/<path:path>', methods=['GET'])
-@secure(app)
+@secure(app, role=['read'])
 def get(api, path, mongo_client):
     status = 200
-    json_to_response = '{}'
     resource_id, collection, conditions = proccess_path(path=path)
     if resource_id is None:
         cursor = mongo_client[api][collection].find(conditions)
         cursor = cursor.limit(10).skip(0).sort([('_id', -1)])
         total = cursor.count()
-        results = [format_result(element) for element in cursor]
-        json_to_response = jsonify({
-            'total': len(results),
-            collection: results
-        })
+        json_dumped = json.dumps([format_result(element) for element in cursor])
     else:
         try:
             conditions.update({'_id': ObjectId(resource_id)})
         except InvalidId:
-            json_to_response = jsonify({
+            json_dumped = json.dumps({
                 'message': u'Resource "%s" is invalid' % resource_id
             })
             status = 404
         else:
             result = mongo_client[api][collection].find_one(conditions)
             if result is not None:
-                json_to_response = jsonify(format_result(result))
+                json_dumped = json.dumps(format_result(result))
             else:
-                json_to_response = jsonify({
+                json_dumped = json.dumps({
                     'message': u'Resource "%s" not found' % resource_id
                 })
                 status = 404
-    return json_to_response, status
+    return Response(
+        response=json_dumped,
+        headers={'Content-Type': 'application/%s+json' % (
+            'collection' if resource_id is None else 'resource'
+        )},
+        status=status
+    )
 
 
 @app.route('/<api>/<path:path>', methods=['POST'])
-@secure(app, role='write')
+@secure(app, role=['create'])
 def post(api, path, mongo_client):
     params = request.json or request.form.to_dict()
     resource_id, collection, data = proccess_path(path=path, params=params)
@@ -114,13 +115,19 @@ def post(api, path, mongo_client):
         return jsonify({'message': u'Not supported resource creation'}), 405
 
 
+@app.route('/<api>/<path:path>', methods=['DELETE'])
+@secure(app, role=['delete'])
+def delete(api, path, mongo_client):
+    pass
+
+
 @app.route('/<api>/<path:path>', methods=['PUT'])
-@secure(app, 'write')
+@secure(app, role=['create', 'update'])
 def put(api, path, mongo_client):
     pass
 
 
-@app.route('/<api>/<path:path>', methods=['DELETE'])
-@secure(app, 'write')
-def delete(api, path, mongo_client):
+@app.route('/<api>/<path:path>', methods=['PATCH'])
+@secure(app, role=['update'])
+def patch(api, path, mongo_client):
     pass

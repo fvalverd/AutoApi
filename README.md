@@ -1,6 +1,7 @@
 #**About ApiSDF**
 
 http://www.restapitutorial.com/lessons/httpmethods.html
+http://restful-api-design.readthedocs.org/en/latest/
 
 
 #**Develop ApiSDF**

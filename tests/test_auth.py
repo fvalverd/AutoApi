@@ -8,7 +8,7 @@ from utils import BaseTest
 class TestAuth(BaseTest):
 
     def test_unauthorized(self):
-        for verb in [self.app.get, self.app.post, self.app.put, self.app.delete]:
+        for verb in [self.app.get, self.app.post, self.app.put, self.app.patch, self.app.delete]:
             response = verb('/%s/movies' % self.api)
             self.assertEqual(response.status_code, 401)
             response_json = json.loads(response.data or '{}')
