@@ -82,7 +82,7 @@ class MoviesTest(LoggedTest):
             client[cls.api].actors.insert(cls.actors)
             cls.actors = [format_result(actor) for actor in cls.actors]
             for movie in cls.movies:
-                movie.update({'actors': [cls.actors[cls.movies.index(movie)]['id']]})
+                movie.update({'actors': cls.actors[cls.movies.index(movie)]['id']})
             client[cls.api].movies.insert(cls.movies)
             cls.movies = [format_result(movie) for movie in cls.movies]
 
