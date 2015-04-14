@@ -8,7 +8,7 @@ from utils import MoviesTest
 class TestGetResource(MoviesTest):
 
     def test_get_not_created(self):
-        response = self.app.get('/api_tests/actors/%s' % self.movies[0]['id'], headers=self.headers)
+        response = self.app.get('/%s/actors/%s' % (self.api, self.movies[0]['id']), headers=self.headers)
         self.assertEqual(response.status_code, 404)
         response_json = json.loads(response.data or '{}')
         self.assertDictContainsSubset(
@@ -23,10 +23,7 @@ class TestGetResource(MoviesTest):
         self.assertDictContainsSubset({'message': u'Resource "a1" is invalid'}, response_json)
 
     def test_get(self):
-        response = self.app.get(
-            '/%s/movies/%s' % (self.api, self.movies[0]['id']),
-            headers=self.headers
-        )
+        response = self.app.get('/%s/movies/%s' % (self.api, self.movies[0]['id']), headers=self.headers)
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.data or '{}')
         self.assertDictEqual(self.movies[0], response_json)

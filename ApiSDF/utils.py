@@ -12,10 +12,7 @@ def proccess_path(path='', params=None):
     is_odd = len(elements) % 2 == 1
     resource_id = None if is_odd else elements.pop(-1)
     collection = elements.pop(-1)
-    path_conditions = dict(zip(
-        elements[0::2],
-        elements[1::2] if params is None else [elements[1::2]]
-    ))
+    path_conditions = dict(zip(elements[0::2], elements[1::2]))
     conditions = params or {}
     for key in ['id', '_id']:
         if key in conditions:

@@ -3,7 +3,7 @@ import json
 
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
-from flask import Flask, jsonify, request, Response
+from flask import Flask, request, Response
 
 from ApiSDF.auth import login_and_get_token, logout_and_remove_token, secure
 from ApiSDF.config import config_app
@@ -32,7 +32,10 @@ def login():
                     'X-Token': token
                 }
             )
-    return jsonify({'message': u'Invalid email/password/api'}), 400
+    return Response(
+        response=json.dumps({'message': u'Invalid email/password/api'}),
+        status=400
+    )
 
 
 @app.route("/logout", methods=['POST'])
@@ -40,8 +43,11 @@ def login():
 def logout(mongo_client):
     params = request.json or request.form.to_dict()
     if logout_and_remove_token(app, params.get('api')):
-        return jsonify({}), 204
-    return jsonify({'message': u'Invalid email/password/api'}), 400
+        return Response(status=204)
+    return Response(
+        response=json.dumps({'message': u'Invalid email/password/api'}),
+        status=400
+    )
 
 
 @app.route("/create_user", methods=['POST'])
@@ -112,13 +118,42 @@ def post(api, path, mongo_client):
                 status=201
             )
     else:
-        return jsonify({'message': u'Not supported resource creation'}), 405
+        return Response(
+            response=json.dumps({
+                'message': u'Not supported resource creation'
+            }),
+            status=405
+        )
 
 
 @app.route('/<api>/<path:path>', methods=['DELETE'])
 @secure(app, role=['delete'])
 def delete(api, path, mongo_client):
-    pass
+    params = request.json or request.form.to_dict()
+    resource_id, collection, conditions = proccess_path(
+        path=path,
+        params=params
+    )
+    try:
+        if resource_id is not None:
+            conditions.update({'_id': ObjectId(resource_id)})
+    except InvalidId:
+        return Response(
+            response=json.dumps({
+                'message': u'Resource "%s" is invalid' % resource_id
+            }),
+            status=404
+        )
+    else:
+        result = mongo_client[api][collection].remove(conditions)
+        if result['n'] == 0 and resource_id is not None:
+            return Response(
+                response=json.dumps({
+                    'message': u'Resource "%s" not found' % resource_id
+                }),
+                status=404
+            )
+        return Response(status=204)
 
 
 @app.route('/<api>/<path:path>', methods=['PUT'])

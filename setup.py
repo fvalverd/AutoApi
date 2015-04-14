@@ -14,7 +14,7 @@ setup(
     description="",
     long_description="""""",
     classifiers=[],
-    keywords='api rest',
+    keywords='api rest auth mongodb',
     author='Felipe Valverde Campos',
     author_email='felipe.valverde.campos@gmail.com',
     url='',

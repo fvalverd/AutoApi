@@ -88,7 +88,7 @@ class TestPost(MoviesTest):
             response.headers['Location']
         )
         star.update({'id': response_json.get('id')})
-        star.update({'movies': [self.movies[2]['id']]})
+        star.update({'movies': self.movies[2]['id']})
         response = self.app.get(response.headers['Location'], headers=self.headers)
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.data or '{}')

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import unittest
+import json
 
 from ApiSDF import app
 from ApiSDF.auth import _admin_manager_client
@@ -45,6 +46,13 @@ class LoggedTest(BaseTest):
         cls.app.post('/logout', headers=cls.headers, data={'api': cls.api})
         super(LoggedTest, cls).tearDownClass()
 
+    def _count_test(self, path, amount):
+        response = self.app.get('/%s/%s' % (self.api, path), headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        response_json = json.loads(response.data)
+        self.assertEqual(amount, len(response_json))
+        return response_json
+
 
 class MoviesTest(LoggedTest):
 
@@ -61,8 +69,15 @@ class MoviesTest(LoggedTest):
     ]
 
     @classmethod
+    def _clean_movies_and_actors(cls):
+        with _admin_manager_client(cls.app.application) as client:
+            client[cls.api].actors.drop()
+            client[cls.api].movies.drop()
+
+    @classmethod
     def setUpClass(cls):
         super(MoviesTest, cls).setUpClass()
+        cls._clean_movies_and_actors()
         with _admin_manager_client(cls.app.application) as client:
             client[cls.api].actors.insert(cls.actors)
             cls.actors = [format_result(actor) for actor in cls.actors]
@@ -73,7 +88,5 @@ class MoviesTest(LoggedTest):
 
     @classmethod
     def tearDownClass(cls):
-        with _admin_manager_client(cls.app.application) as client:
-            client[cls.api].actors.drop()
-            client[cls.api].movies.drop()
+        cls._clean_movies_and_actors()
         super(MoviesTest, cls).tearDownClass()
