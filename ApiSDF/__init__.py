@@ -7,7 +7,7 @@ from flask import Flask, request, Response
 
 from ApiSDF.auth import login_and_get_token, logout_and_remove_token, secure
 from ApiSDF.config import config_app
-from ApiSDF.utils import format_result, proccess_path
+from ApiSDF.utils import add_conditions_into_params, format_result, proccess_path
 
 
 app = Flask('ApiSDF')
@@ -159,7 +159,38 @@ def delete(api, path, mongo_client):
 @app.route('/<api>/<path:path>', methods=['PUT'])
 @secure(app, role=['create', 'update'])
 def put(api, path, mongo_client):
-    pass
+    params = request.json or request.form.to_dict()
+    resource_id, collection, conditions = proccess_path(path=path)
+    json_dumped = None
+    status = 204
+    if resource_id is None:
+        json_dumped = json.dumps({
+            'message': u'Not supported collection update/replace'
+        })
+        status = 404
+    else:
+        try:
+            conditions = {key: {'$in': [value]} for key, value in conditions.items()}
+            conditions.update({'_id': ObjectId(resource_id)})
+        except InvalidId:
+            json_dumped = json.dumps({
+                'message': u'Resource "%s" is invalid' % resource_id
+            })
+            status = 404
+        else:
+            result = mongo_client[api][collection].update(
+                conditions,
+                params
+            )
+            if result['n'] == 0:
+                json_dumped = json.dumps({
+                    'message': u'Resource "%s" not found' % resource_id
+                })
+                status = 404
+    return Response(
+        response=json_dumped,
+        status=status
+    )
 
 
 @app.route('/<api>/<path:path>', methods=['PATCH'])

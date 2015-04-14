@@ -1,6 +1,13 @@
 # -*- coding: utf-8 -*-
 
 
+def add_conditions_into_params(params, conditions):
+    for key in ['id', '_id']:
+        if key in params:
+            del params[key]
+    params.update(conditions)
+
+
 def format_result(result):
     if result is not None and result.get('_id'):
         result['id'] = str(result.pop('_id'))
@@ -12,10 +19,6 @@ def proccess_path(path='', params=None):
     is_odd = len(elements) % 2 == 1
     resource_id = None if is_odd else elements.pop(-1)
     collection = elements.pop(-1)
-    path_conditions = dict(zip(elements[0::2], elements[1::2]))
-    conditions = params or {}
-    for key in ['id', '_id']:
-        if key in conditions:
-            del conditions[key]
-    conditions.update(path_conditions)
-    return resource_id, collection, conditions
+    params = params or {}
+    add_conditions_into_params(params, dict(zip(elements[0::2], elements[1::2])))
+    return resource_id, collection, params
