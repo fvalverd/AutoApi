@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from contextlib import contextmanager
-import json
 from functools import wraps
+import inspect
+import json
 import uuid
 
 from flask import jsonify, request
@@ -10,9 +11,18 @@ from pymongo import MongoClient
 from pymongo.errors import OperationFailure, PyMongoError
 
 
-def secure(app, role=None, logout=False, api=None):
+def add_app(app, controller):
     def wrapper(func):
-        _api = api
+        @wraps(func)
+        def wrapped(*args, **kwargs):
+            return func(*args, app=app, **kwargs)
+        return wrapped
+    return wrapper(controller)
+
+
+def secure(app, role=None, logout=False, api=None, controller=None):
+    def wrapper(func):
+        _api = api  # TODO: scope bug ?
 
         @wraps(func)
         def wrapped(*args, **kwargs):
@@ -23,7 +33,12 @@ def secure(app, role=None, logout=False, api=None):
                     api = params.get('api')
                 else:
                     api = kwargs.get('api')
-            client, is_authorized = _is_authorized_token_and_get_client(app, api)
+            if 'app' in inspect.getargspec(func)[0]:
+                kwargs['app'] = app
+            client, is_authorized = _is_authorized_token_and_get_client(
+                app,
+                api
+            )
             if is_authorized:
                 func_return = func(*args, mongo_client=client, **kwargs)
                 client.close()
@@ -33,7 +48,10 @@ def secure(app, role=None, logout=False, api=None):
                 401
             )
         return wrapped
-    return wrapper
+    if controller is None:
+        return wrapper
+    else:
+        return wrapper(controller)
 
 
 def login_and_get_token(app, api, email, password):
@@ -46,7 +64,11 @@ def login_and_get_token(app, api, email, password):
     else:
         token = _create_token()
         with _admin_manager_client(app, client=client) as client:
-            client[api].command('updateUser', email, customData={'token': token})
+            client[api].command(
+                'updateUser',
+                email,
+                customData={'token': token}
+            )
             return token
 
 
@@ -66,7 +88,10 @@ def _create_token():
 
 
 def _get_mongo_client(app):
-    return MongoClient(host=app.config['MONGO_HOST'], port=app.config['MONGO_PORT'])
+    return MongoClient(
+        host=app.config['MONGO_HOST'],
+        port=app.config['MONGO_PORT']
+    )
 
 
 @contextmanager
