@@ -9,12 +9,22 @@ from tests import MoviesTest
 class TestPatchResource(MoviesTest):
 
     def test_patch_invalid_id(self):
-        response = self.app.patch('/%s/movies/a1' % self.api, headers=self.headers)
+        response = self.app.patch(
+            '/%s/movies/a1' % self.api,
+            headers=self.headers,
+            data=json.dumps({}),
+            content_type='application/json'
+        )
         self.assertEqual(response.status_code, 404)
         self.assertDictContainsSubset({'message': u'Resource "a1" is invalid'}, json.loads(response.data))
 
     def test_patch_not_found_id(self):
-        response = self.app.patch('/%s/actors/%s' % (self.api, self.movies[0]['id']), headers=self.headers)
+        response = self.app.patch(
+            '/%s/actors/%s' % (self.api, self.movies[0]['id']),
+            headers=self.headers,
+            data=json.dumps({}),
+            content_type='application/json'
+        )
         self.assertEqual(response.status_code, 404)
         response_json = json.loads(response.data)
         self.assertDictContainsSubset(
@@ -27,7 +37,8 @@ class TestPatchResource(MoviesTest):
         response = self.app.patch(
             '/%s/movies/%s' % (self.api, self.movies[0]['id']),
             headers=self.headers,
-            data={'country': 'USA'}
+            data=json.dumps({'country': 'USA'}),
+            content_type='application/json'
         )
         self.assertEqual(response.status_code, 204)
         response = self.app.get('/%s/movies/%s' % (self.api, self.movies[0]['id']), headers=self.headers)
@@ -39,7 +50,8 @@ class TestPatchResource(MoviesTest):
         response = self.app.patch(
             '/%s/actors/%s/movies/%s' % (self.api, self.actors[1]['id'], self.movies[1]['id']),
             headers=self.headers,
-            data={'country': 'USA'}
+            data=json.dumps({'country': 'USA'}),
+            content_type='application/json'
         )
         self.assertEqual(response.status_code, 204)
         response = self.app.get('/%s/movies/%s' % (self.api, self.movies[1]['id']), headers=self.headers)

@@ -8,7 +8,12 @@ from tests import MoviesTest
 class TestPost(MoviesTest):
 
     def test_post_not_allow(self):
-        response = self.app.post('/%s/movies/1234' % self.api, headers=self.headers, data={})
+        response = self.app.post(
+            '/%s/movies/1234' % self.api,
+            headers=self.headers,
+            data=json.dumps({}),
+            content_type='application/json'
+        )
         self.assertEqual(response.status_code, 405)
         response_json = json.loads(response.data or '{}')
         self.assertDictContainsSubset(
@@ -18,7 +23,12 @@ class TestPost(MoviesTest):
 
     def test_post_empty(self):
         movie = {}
-        response = self.app.post('/%s/movies' % self.api, headers=self.headers, data=movie)
+        response = self.app.post(
+            '/%s/movies' % self.api,
+            headers=self.headers,
+            data=json.dumps(movie),
+            content_type='application/json'
+        )
         self.assertEqual(response.status_code, 201)
         response_json = json.loads(response.data or '{}')
         self.assertIn('id', response_json)
@@ -36,7 +46,12 @@ class TestPost(MoviesTest):
 
     def test_post(self):
         movie = {'name': u'Kill Bill: Volumen 1', 'year': u'2003'}
-        response = self.app.post('/%s/movies' % self.api, headers=self.headers, data=movie)
+        response = self.app.post(
+            '/%s/movies' % self.api,
+            headers=self.headers,
+            data=json.dumps(movie),
+            content_type='application/json'
+        )
         self.assertEqual(response.status_code, 201)
         response_json = json.loads(response.data or '{}')
         self.assertIn('id', response_json)
@@ -54,7 +69,12 @@ class TestPost(MoviesTest):
 
     def test_post_and_ignore_id_parameter(self):
         movie = {'name': u'Kill Bill: Volumen 1', 'year': u'2003', 'id': u'1', '_id': u'2'}
-        response = self.app.post('/%s/movies' % self.api, headers=self.headers, data=movie)
+        response = self.app.post(
+            '/%s/movies' % self.api,
+            headers=self.headers,
+            data=json.dumps(movie),
+            content_type='application/json'
+        )
         self.assertEqual(response.status_code, 201)
         response_json = json.loads(response.data or '{}')
         self.assertNotEqual(response_json.get('id'), movie['id'])
@@ -76,7 +96,8 @@ class TestPost(MoviesTest):
         response = self.app.post(
             '/%s/movies/%s/stars' % (self.api, self.movies[2]['id']),
             headers=self.headers,
-            data=star
+            data=json.dumps(star),
+            content_type='application/json'
         )
         self.assertEqual(response.status_code, 201)
         response_json = json.loads(response.data or '{}')

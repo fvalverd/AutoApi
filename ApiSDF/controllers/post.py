@@ -7,7 +7,7 @@ from ApiSDF.utils import proccess_path
 
 
 def post(api, path, mongo_client):
-    params = request.json or request.form.to_dict()
+    params = request.json
     resource_id, collection, data = proccess_path(path=path, params=params)
     if resource_id is None:
         resource_id = mongo_client[api][collection].insert(data)

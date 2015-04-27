@@ -9,7 +9,7 @@ from ApiSDF.utils import proccess_path
 
 
 def patch(api, path, mongo_client):
-    params = request.json or request.form.to_dict()
+    params = request.json
     resource_id, collection, conditions = proccess_path(path=path)
     json_dumped = None
     status = 204

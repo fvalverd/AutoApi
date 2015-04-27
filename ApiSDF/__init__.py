@@ -12,6 +12,8 @@ app = Flask('ApiSDF')
 config_app(app)
 
 
+# Users
+
 app.route('/login', methods=['POST'])(
     add_app(app, controller=login)
 )
@@ -23,6 +25,9 @@ app.route('/logout', methods=['POST'])(
 app.route('/create_user', methods=['POST'])(
     secure(app, controller=create_user, role='admin')
 )
+
+
+# Resurces
 
 app.route('/<api>/<path:path>', methods=['GET'])(
     secure(app, controller=get, role='read')
