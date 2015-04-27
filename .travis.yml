@@ -12,7 +12,7 @@ install:
   - pip install pep8 pip-tools coviolations_app coverage
 before_script:
   - cp tests.cfg.default tests.cfg
-script: ./run_tests --with-coverage 2>test_result
+script: ./run_tests --with-coverage --cover-package=AutoApi > test_result
 after_script:
   - coverage report
   - covio
