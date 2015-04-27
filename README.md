@@ -85,7 +85,7 @@ More info about REST:
 #**Config**
 ### OpenSSL Ubuntu dependencies
 ```
-sudo apt-get install libffi-dev libssl-devel
+sudo apt-get install libffi-dev libssl-dev
 ```
 
 ### MongoDB
@@ -101,14 +101,14 @@ Related info:
 #**Develop**
 
 ### Run api server
-Fill ./server.cfg
 ```
+cp server.cfg.default server.cfg
 ./run_server
 ```
 
 ### Test api server
-Fill ./tests.cfg
 ```
+cp tests.cfg.default tests.cfg
 ./run_test -s
 ```
 

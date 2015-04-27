@@ -60,3 +60,8 @@ docs/_build/
 
 # PyBuilder
 target/
+
+
+# AutoApi config
+tests.cfg
+server.cfg
