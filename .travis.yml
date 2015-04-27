@@ -1,0 +1,9 @@
+language: python
+install:
+  - sudo apt-get install libffi-dev libssl-devel
+  - python setup.py develop
+python:
+  - "2.7"
+services:
+  - mongodb --auth
+script: ./run_tests
