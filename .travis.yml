@@ -10,6 +10,4 @@ install:
   - python setup.py develop
 before_script:
   - cp tests.cfg.default tests.cfg
-  - sudo service mongod restart
-  - mongo --eval "db.version()"
 script: ./run_tests
