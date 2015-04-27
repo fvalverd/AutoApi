@@ -2,17 +2,15 @@ language: python
 python:
   - "2.7"
 install:
-  - sudo apt-get install libffi-dev libssl-dev
   - sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
   - echo "deb http://repo.mongodb.org/apt/ubuntu "$(lsb_release -sc)"/mongodb-org/3.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.0.list
   - sudo apt-get update
-  - sudo apt-get install -y mongodb-org=3.0.2 mongodb-org-server=3.0.2 mongodb-org-shell=3.0.2 mongodb-org-mongos=3.0.2 mongodb-org-tools=3.0.2
+  - sudo apt-get install -y libffi-dev libssl-dev mongodb-org=3.0.2 mongodb-org-server=3.0.2 mongodb-org-shell=3.0.2 mongodb-org-mongos=3.0.2 mongodb-org-tools=3.0.2
   - python setup.py develop
-  - sudo apt-get install sloccount
-  - pip install pep8 pip-tools coviolations_app coverage
+  - pip install coveralls
 before_script:
   - cp tests.cfg.default tests.cfg
-script: ./run_tests --with-coverage --cover-package=AutoApi > test_result
+script:
+  - coverage run --source=AutoApi ./run_tests --with-coverage --cover-package=AutoApi
 after_script:
-  - coverage report
-  - covio
+  - coveralls
