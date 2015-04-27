@@ -3,6 +3,7 @@ install:
   - sudo apt-get install libffi-dev libssl-devel
   - python setup.py develop
 python:
+  - "2.6"
   - "2.7"
 services:
   - mongodb --auth
