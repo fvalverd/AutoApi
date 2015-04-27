@@ -3,7 +3,7 @@ import json
 import unittest
 
 from ApiSDF.auth import _admin_manager_client
-from utils import MoviesTest
+from tests import MoviesTest
 
 
 class TestPatchResource(MoviesTest):

@@ -2,7 +2,7 @@
 import json
 import unittest
 
-from utils import MoviesTest
+from tests import MoviesTest
 
 
 class TestGetResource(MoviesTest):

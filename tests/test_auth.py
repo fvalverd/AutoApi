@@ -2,10 +2,10 @@
 import json
 import unittest
 
-from utils import BaseTest
+from tests import BaseTest, LoggedTest
 
 
-class TestAuth(BaseTest):
+class TestLogin(BaseTest):
 
     def test_unauthorized(self):
         for verb in [self.app.get, self.app.post, self.app.put, self.app.patch, self.app.delete]:
@@ -35,22 +35,27 @@ class TestAuth(BaseTest):
         data = {'email': self.user, 'password': self.password, 'api': self.api}
         response = self.app.post('/login', data=data)
         self.assertEqual(response.status_code, 200)
-        response = self.app.get('/%s/movies' % self.api, headers=response.headers)
+        headers = self.response_to_headers(response)
+        response = self.app.get('/%s/movies' % self.api, headers=headers)
         self.assertEqual(response.status_code, 200)
+
+
+class TestLogout(BaseTest):
 
     def test_logout(self):
         data = {'email': self.user, 'password': self.password, 'api': self.api}
         response = self.app.post('/login', data=data)
         self.assertEqual(response.status_code, 200)
-        session_headers = {'X-Email': data['email'], 'X-Token': response.headers['X-Token']}
-        response = self.app.post('/logout', headers=session_headers, data={'api': 'api_tests'})
+        headers = self.response_to_headers(response)
+        response = self.app.post('/logout', headers=headers, data={'api': 'api_tests'})
         self.assertEqual(response.status_code, 204)
 
     def test_login_but_unauthorized_in_other_api(self):
         data = {'email': self.user, 'password': self.password, 'api': self.api}
         response = self.app.post('/login', data=data)
         self.assertEqual(response.status_code, 200)
-        response = self.app.get('/bad_api/movies', headers=response.headers)
+        headers = self.response_to_headers(response)
+        response = self.app.get('/bad_api/movies', headers=headers)
         self.assertEqual(response.status_code, 401)
         response_json = json.loads(response.data or '{}')
         self.assertDictEqual(
@@ -62,14 +67,53 @@ class TestAuth(BaseTest):
         data = {'email': self.user, 'password': self.password, 'api': self.api}
         response = self.app.post('/login', data=data)
         self.assertEqual(response.status_code, 200)
-        session_headers = {'X-Email': data['email'], 'X-Token': response.headers['X-Token']}
-        response = self.app.post('/logout', headers=session_headers, data={'api': 'bad_api'})
+        headers = self.response_to_headers(response)
+        response = self.app.post('/logout', headers=headers, data={'api': 'bad_api'})
         self.assertEqual(response.status_code, 401)
         response_json = json.loads(response.data or '{}')
         self.assertDictEqual(
             response_json,
             {'message': u'You must be logged in "%s" api' % u'bad_api'}
         )
+
+
+class TestUsers(LoggedTest):
+
+    def test_create_read_user(self):
+        test_data = {'email': u'fvalverd', 'password': u'pass', 'api': self.api, 'roles': ['read']}
+
+        admin_headers = self.get_admin_headers()
+        response = self.app.post(
+            '/create_user',
+            headers=admin_headers,
+            data=json.dumps(test_data),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 201)
+
+        response = self.app.post('/login', data=test_data)
+        self.assertEqual(response.status_code, 200)
+        headers = self.response_to_headers(response)
+
+        # read
+        response = self.app.get('/%s/movies' % self.api, headers=headers)
+        self.assertEqual(response.status_code, 200)
+
+        # create
+        response = self.app.post('/%s/movies' % self.api, headers=headers, data='')
+        self.assertEqual(response.status_code, 401)
+
+        # update put
+        # response = self.app.get('/%s/movies/%s' % self.api, headers=headers)
+        # self.assertEqual(response.status_code, 200)
+
+        # update patch
+        # response = self.app.get('/%s/movies' % self.api, headers=headers)
+        # self.assertEqual(response.status_code, 200)
+
+        # delete
+        # response = self.app.get('/%s/movies' % self.api, headers=headers)
+        # self.assertEqual(response.status_code, 200)
 
 
 if __name__ == '__main__':
