@@ -2,9 +2,9 @@
 import unittest
 import json
 
-from ApiSDF import app
-from ApiSDF.auth import _admin_manager_client
-from ApiSDF.utils import format_result
+from AutoApi import app
+from AutoApi.auth import _admin_manager_client
+from AutoApi.utils import format_result
 
 
 class BaseTest(unittest.TestCase):

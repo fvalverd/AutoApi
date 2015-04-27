@@ -2,12 +2,12 @@
 from pymongo import MongoClient
 from flask.ext.cors import CORS
 
-from ApiSDF.auth import _admin_manager_client
+from AutoApi.auth import _admin_manager_client
 
 
 def config_app(app):
     CORS(app, resources={r"/*": {"origins": "*"}})
-    app.config.from_envvar('APISDF_SETTINGS')
+    app.config.from_envvar('AUTOAPI_SETTINGS')
     with _admin_manager_client(app) as client:
         try:
             client.admin.add_user(

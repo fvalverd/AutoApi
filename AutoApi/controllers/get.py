@@ -5,7 +5,7 @@ from bson.objectid import ObjectId
 from bson.errors import InvalidId
 from flask import Response
 
-from ApiSDF.utils import format_result, proccess_path
+from AutoApi.utils import format_result, proccess_path
 
 
 def get(api, path, mongo_client):

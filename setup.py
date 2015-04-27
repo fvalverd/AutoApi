@@ -9,7 +9,7 @@ except Exception:
     current_tag = '0.0.0'
 
 setup(
-    name='ApiSDF',
+    name='AutoApi',
     version=current_tag,
     description="",
     long_description="""""",

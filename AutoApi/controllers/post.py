@@ -3,7 +3,7 @@ import json
 
 from flask import request, Response
 
-from ApiSDF.utils import proccess_path
+from AutoApi.utils import proccess_path
 
 
 def post(api, path, mongo_client):

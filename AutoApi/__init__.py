@@ -3,12 +3,12 @@ import json
 
 from flask import Flask
 
-from ApiSDF.auth import add_app, secure, login, logout, create_user
-from ApiSDF.config import config_app
-from ApiSDF.controllers import get, post, delete, put, patch
+from AutoApi.auth import add_app, secure, login, logout, create_user
+from AutoApi.config import config_app
+from AutoApi.controllers import get, post, delete, put, patch
 
 
-app = Flask('ApiSDF')
+app = Flask('AutoApi')
 config_app(app)
 
 

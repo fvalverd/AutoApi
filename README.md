@@ -1,10 +1,10 @@
-#**About ApiSDF**
+#**About AutoApi**
 
 http://www.restapitutorial.com/lessons/httpmethods.html
 http://restful-api-design.readthedocs.org/en/latest/
 
 
-#**Develop ApiSDF**
+#**Develop AutoApi**
 ### Run api server
 ```
 ./scripts/run_server
@@ -15,7 +15,7 @@ http://restful-api-design.readthedocs.org/en/latest/
 ./scripts/run_test
 ```
 
-#**Config ApiSDF**
+#**Config AutoApi**
 
 OpenSSL Ubuntu dependencies
 ```
@@ -26,7 +26,7 @@ sudo apt-get install libffi-dev libssl-devel
 Fill server.cfg and tests.cfg
 
 ## Config MongoDB server
-ApiSDF use MongoDB users, so you have to add auth=true to your mongodb.cfg or run mongod with --auth
+AutoApi use MongoDB users, so you have to add auth=true to your mongodb.cfg or run mongod with --auth
 
 - http://docs.mongodb.org/manual/core/authentication
 - http://docs.mongodb.org/manual/core/authorization

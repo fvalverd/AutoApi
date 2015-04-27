@@ -2,7 +2,7 @@
 import json
 import unittest
 
-from ApiSDF.auth import _admin_manager_client
+from AutoApi.auth import _admin_manager_client
 from tests import MoviesTest
 
 
