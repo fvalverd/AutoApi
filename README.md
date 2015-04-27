@@ -89,10 +89,11 @@ sudo apt-get install libffi-dev libssl-dev
 ```
 
 ### MongoDB
-AutoApi use MongoDB users, so you have to add auth=true to your mongodb.cfg or run mongod with --auth. If MongoDB does not have admin user, AutoApi will create it from tests.cfg or server.cfg data
+AutoApi use MongoDB 3.X users, so you have to add auth=true to your mongodb.cfg or run mongod with --auth. If MongoDB does not have admin user, AutoApi will create it from tests.cfg or server.cfg data
 
 Related info:
 
+- http://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/
 - http://docs.mongodb.org/manual/core/authentication
 - http://docs.mongodb.org/manual/core/authorization
 - http://docs.mongodb.org/manual/tutorial/add-user-administrator

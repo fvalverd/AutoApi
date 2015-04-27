@@ -1,20 +1,15 @@
-import os
+# -*- coding: utf-8 -*-
 from setuptools import setup, find_packages
-import subprocess
 
-try:
-    git_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".git")
-    current_tag = subprocess.check_output(['git', '--git-dir', git_path, 'tag']).strip().split('\n')[-1]
-except Exception:
-    current_tag = '0.0.0'
+version = '0.0.1'
 
 setup(
     name='AutoApi',
-    version=current_tag,
+    version=version,
     description="",
     long_description="""""",
     classifiers=[],
-    keywords='api rest auth mongodb',
+    keywords='api rest auth mongodb3',
     author='Felipe Valverde Campos',
     author_email='felipe.valverde.campos@gmail.com',
     url='',

@@ -8,6 +8,11 @@ install:
   - sudo apt-get update
   - sudo apt-get install -y mongodb-org=3.0.2 mongodb-org-server=3.0.2 mongodb-org-shell=3.0.2 mongodb-org-mongos=3.0.2 mongodb-org-tools=3.0.2
   - python setup.py develop
+  - sudo apt-get install sloccount
+  - pip install pep8 pip-tools coviolations_app coverage
 before_script:
   - cp tests.cfg.default tests.cfg
-script: ./run_tests
+script: ./run_tests --with-coverage 2>test_result
+after_script:
+  - coverage report
+  - covio
