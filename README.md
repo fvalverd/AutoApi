@@ -1,39 +1,114 @@
-#**About AutoApi**
+#**AutoApi**
+AutoApi was created to not wasting time to developing an API REST at the project start. Has an authentication system to provided secure data and the support for multiple APIs.
 
-http://www.restapitutorial.com/lessons/httpmethods.html
-http://restful-api-design.readthedocs.org/en/latest/
-
-
-#**Develop AutoApi**
-### Run api server
+### Authentication ###
+Each API has their own users, so users have to logged specifying the API like this:
 ```
-./scripts/run_server
+POST /login
+
+Content-Type: application/json
+
+{"email": "user@email.com", "password": "pass", "api": "example"}
+```
+This returns a session token in the headers and body:
+```
+Content-Type: application/json
+X-Email: user@email.com
+X-Token: 123456
+
+{"email": "user@email.com", "token": "123456"}
 ```
 
-### Test api server
+To logout, users have to specify the API like this:
 ```
-./scripts/run_test
+POST /logout
+
+Content-Type: application/json
+X-Email: ADMIN_USER
+X-Token: ADMIN_USER_TOKEN
+
+{"api": "example"}
 ```
 
-#**Config AutoApi**
+### Create user ###
+Each API has their own users, so an admin user has to create it specifying the API and CRUD roles like this:
+```
+POST /create_user
 
-OpenSSL Ubuntu dependencies
+Content-Type: application/json
+X-Email: ADMIN_USER
+X-Token: ADMIN_USER_TOKEN
+
+{"email": "user@email.com", "password": "pass", "api": "example", "roles": ["read", "update"]}
+```
+This automatically permit to the user "user@email.com" use the API called "example" without any creation request.
+
+### Create API ###
+Is automatic from user creation.
+
+### Create API collection ###
+Is automatic from api creation.
+
+### CRUD collection's resource ###
+Only logged users could read/create/update/delete API resources. A read example:
+```
+GET /example/actors/1/movies
+
+Content-Type: application/json
+X-Email: user@email.com
+X-Token: USER_TOKEN
+```
+
+This returns all movies where actor 1 is present in the "example" API like this:
+
+```
+Content-Type: application/json
+
+[
+	{"name": "Movie 1", "year": "2014"},
+	{"name": "Movie 2", "year": "2013"},
+	...
+	{"name": "Movie n", "year": "2000"},
+]
+```
+
+
+More info about REST:
+
+- http://www.restapitutorial.com/lessons/httpmethods.html
+- http://restful-api-design.readthedocs.org/en/latest/
+
+
+#**Config**
+### OpenSSL Ubuntu dependencies
 ```
 sudo apt-get install libffi-dev libssl-devel
 ```
 
-## Config file
-Fill server.cfg and tests.cfg
+### MongoDB
+AutoApi use MongoDB users, so you have to add auth=true to your mongodb.cfg or run mongod with --auth. If MongoDB does not have admin user, AutoApi will create it from tests.cfg or server.cfg data
 
-## Config MongoDB server
-AutoApi use MongoDB users, so you have to add auth=true to your mongodb.cfg or run mongod with --auth
+Related info:
 
 - http://docs.mongodb.org/manual/core/authentication
 - http://docs.mongodb.org/manual/core/authorization
+- http://docs.mongodb.org/manual/tutorial/add-user-administrator
 
 
-## Config MongoDB admin user
+#**Develop**
 
-- http://docs.mongodb.org/manual/tutorial/add-user-administrator/
-- http://docs.mongodb.org/manual/core/authentication/#localhost-exception
+### Run api server
+Fill ./server.cfg
+```
+./run_server
+```
 
+### Test api server
+Fill ./tests.cfg
+```
+./run_test -s
+```
+
+#**TODO**
+- GET options (filters, sort and fields)
+- Custom roles
