@@ -27,6 +27,13 @@ class BaseTest(unittest.TestCase):
             )
 
     @classmethod
+    def tearDownClass(cls):
+        with _admin_manager_client(cls.app.application) as client:
+            client[cls.api].authenticate(cls.user, cls.password)
+            client.drop_database(cls.api)
+        super(BaseTest, cls).tearDownClass()
+
+    @classmethod
     def response_to_headers(cls, response):
         return {
             'X-Email': response.headers['X-Email'],
@@ -87,6 +94,7 @@ class MoviesTest(LoggedTest):
         with _admin_manager_client(cls.app.application) as client:
             client[cls.api].actors.drop()
             client[cls.api].movies.drop()
+            client[cls.api].stars.drop()
 
     @classmethod
     def setUpClass(cls):

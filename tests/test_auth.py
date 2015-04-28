@@ -77,19 +77,19 @@ class TestLogout(BaseTest):
         )
 
 
-class TestUsers(MoviesTest):
+class TestCreateUser(MoviesTest):
 
-    def test_create_read_user(self):
+    def test_read_role(self):
         test_data = {'email': u'fvalverd', 'password': u'pass', 'api': self.api, 'roles': ['read']}
 
         admin_headers = self.get_admin_headers()
         response = self.app.post(
-            '/create_user',
+            '/user',
             headers=admin_headers,
             data=json.dumps(test_data),
             content_type='application/json'
         )
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 204)
 
         response = self.app.post('/login', data=test_data)
         self.assertEqual(response.status_code, 200)
@@ -115,17 +115,17 @@ class TestUsers(MoviesTest):
         response = self.app.delete('/%s/movies/%s' % (self.api, self.movies[0]['id']), headers=headers)
         self.assertEqual(response.status_code, 401)
 
-    def test_create_create_user(self):
+    def test_create_role(self):
         test_data = {'email': u'fvalverd', 'password': u'pass', 'api': self.api, 'roles': ['create']}
 
         admin_headers = self.get_admin_headers()
         response = self.app.post(
-            '/create_user',
+            '/user',
             headers=admin_headers,
             data=json.dumps(test_data),
             content_type='application/json'
         )
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 204)
 
         response = self.app.post('/login', data=test_data)
         self.assertEqual(response.status_code, 200)
@@ -156,17 +156,17 @@ class TestUsers(MoviesTest):
         response = self.app.delete('/%s/movies/%s' % (self.api, self.movies[0]['id']), headers=headers)
         self.assertEqual(response.status_code, 401)
 
-    def test_create_update_user(self):
+    def test_update_role(self):
         test_data = {'email': u'fvalverd', 'password': u'pass', 'api': self.api, 'roles': ['update']}
 
         admin_headers = self.get_admin_headers()
         response = self.app.post(
-            '/create_user',
+            '/user',
             headers=admin_headers,
             data=json.dumps(test_data),
             content_type='application/json'
         )
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 204)
 
         response = self.app.post('/login', data=test_data)
         self.assertEqual(response.status_code, 200)
@@ -202,17 +202,17 @@ class TestUsers(MoviesTest):
         response = self.app.delete('/%s/movies/%s' % (self.api, self.movies[0]['id']), headers=headers)
         self.assertEqual(response.status_code, 401)
 
-    def test_create_delete_user(self):
+    def test_delete_role(self):
         test_data = {'email': u'fvalverd', 'password': u'pass', 'api': self.api, 'roles': ['delete']}
 
         admin_headers = self.get_admin_headers()
         response = self.app.post(
-            '/create_user',
+            '/user',
             headers=admin_headers,
             data=json.dumps(test_data),
             content_type='application/json'
         )
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 204)
 
         response = self.app.post('/login', data=test_data)
         self.assertEqual(response.status_code, 200)
@@ -238,17 +238,17 @@ class TestUsers(MoviesTest):
         response = self.app.delete('/%s/movies/%s' % (self.api, self.movies[1]['id']), headers=headers)
         self.assertEqual(response.status_code, 204)
 
-    def test_create_admin_user(self):
+    def test_admin_role(self):
         test_data = {'email': u'fvalverd', 'password': u'pass', 'api': self.api, 'roles': ['admin']}
 
         admin_headers = self.get_admin_headers()
         response = self.app.post(
-            '/create_user',
+            '/user',
             headers=admin_headers,
             data=json.dumps(test_data),
             content_type='application/json'
         )
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 204)
 
         response = self.app.post('/login', data=test_data)
         self.assertEqual(response.status_code, 200)
@@ -288,6 +288,107 @@ class TestUsers(MoviesTest):
         # delete
         response = self.app.delete('/%s/movies/%s' % (self.api, self.movies[2]['id']), headers=headers)
         self.assertEqual(response.status_code, 204)
+
+
+class TestEditRoles(MoviesTest):
+
+    @classmethod
+    def setUpClass(cls):
+        super(TestEditRoles, cls).setUpClass()
+        cls.read_user = {'email': u'fvalverd', 'password': u'pass', 'api': cls.api, 'roles': ['read']}
+        cls.app.post(
+            '/user',
+            headers=cls.headers,
+            data=json.dumps(cls.read_user),
+            content_type='application/json'
+        )
+        response = cls.app.post('/login', data=cls.read_user)
+        cls.read_user_header = cls.response_to_headers(response)
+
+    def test_edit_read_role(self):
+        for read, status_code in [(False, 401), (True, 200)]:
+            response = self.app.post(
+                '/roles',
+                headers=self.headers,
+                data=json.dumps({'email': self.read_user['email'], 'api': self.api, 'roles': {'read': read}}),
+                content_type='application/json'
+            )
+            self.assertEqual(response.status_code, 204)
+
+            response = self.app.get('/%s/movies' % self.api, headers=self.read_user_header)
+            self.assertEqual(response.status_code, status_code)
+
+    def test_edit_create_role(self):
+        for create, status_code in [(True, 201), (False, 401)]:
+            response = self.app.post(
+                '/roles',
+                headers=self.headers,
+                data=json.dumps({'email': self.read_user['email'], 'api': self.api, 'roles': {'create': create}}),
+                content_type='application/json'
+            )
+            self.assertEqual(response.status_code, 204)
+
+            response = self.app.post(
+                '/%s/movies' % self.api,
+                headers=self.read_user_header,
+                data=json.dumps({}),
+                content_type='application/json'
+            )
+            self.assertEqual(response.status_code, status_code)
+
+    def test_edit_update_role(self):
+        for update, status_code in [(True, 204), (False, 401)]:
+            response = self.app.post(
+                '/roles',
+                headers=self.headers,
+                data=json.dumps({'email': self.read_user['email'], 'api': self.api, 'roles': {'update': update}}),
+                content_type='application/json'
+            )
+            self.assertEqual(response.status_code, 204)
+
+            response = self.app.put(
+                '/%s/movies/%s' % (self.api, self.movies[0]['id']),
+                headers=self.read_user_header,
+                data=json.dumps({}),
+                content_type='application/json'
+            )
+            self.assertEqual(response.status_code, status_code)
+
+    def test_edit_delete_role(self):
+        for delete, movie_pos, status_code in [(True, 1, 204), (False, 2, 401)]:
+            response = self.app.post(
+                '/roles',
+                headers=self.headers,
+                data=json.dumps({'email': self.read_user['email'], 'api': self.api, 'roles': {'delete': delete}}),
+                content_type='application/json'
+            )
+            self.assertEqual(response.status_code, 204)
+
+            response = self.app.delete(
+                '/%s/movies/%s' % (self.api, self.movies[movie_pos]['id']),
+                headers=self.read_user_header,
+                data=json.dumps({}),
+                content_type='application/json'
+            )
+            self.assertEqual(response.status_code, status_code)
+
+    def test_edit_admin_role(self):
+        for admin, email, status_code in [(True, 'user_1', 204), (False, 'user_2', 401)]:
+            response = self.app.post(
+                '/roles',
+                headers=self.headers,
+                data=json.dumps({'email': self.read_user['email'], 'api': self.api, 'roles': {'admin': admin}}),
+                content_type='application/json'
+            )
+            self.assertEqual(response.status_code, 204)
+
+            response = self.app.post(
+                '/user',
+                headers=self.read_user_header,
+                data=json.dumps({'email': email, 'password': u'pass', 'api': self.api}),
+                content_type='application/json'
+            )
+            self.assertEqual(response.status_code, status_code)
 
 
 if __name__ == '__main__':

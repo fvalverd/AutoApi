@@ -46,7 +46,7 @@ def logout(app):
     return _invalid_data()
 
 
-def create_user(mongo_client):
+def user(mongo_client):
     params = request.json
     if params.get('email') and params.get('password') and params.get('api'):
         mongo_client[params.get('api')].add_user(
@@ -56,7 +56,36 @@ def create_user(mongo_client):
                 'roles': params.get('roles') or DEFAULT_ROLES
             }
         )
-        return Response(status=201)
+        return Response(status=204)
+    return _invalid_data()
+
+
+def roles(app, mongo_client):
+    params = request.json
+    if params.get('email') and params.get('api') and params.get('roles'):
+        try:
+            result = mongo_client[params.get('api')].command('usersInfo', {
+                'user': params.get('email'),
+                'db': params.get('api')
+            })
+        except OperationFailure:
+            return _invalid_data()
+        else:
+            if result.get('users'):
+                user = result['users'][0]
+                customData = user.get('customData', {})
+                roles = customData.get('roles') or []
+                customData['roles'] = [
+                    role
+                    for role in roles + params['roles'].keys()
+                    if params['roles'].get(role, True)
+                ]
+                mongo_client[params.get('api')].command(
+                    'updateUser',
+                    params.get('email'),
+                    customData=customData
+                )
+                return Response(status=204)
     return _invalid_data()
 
 

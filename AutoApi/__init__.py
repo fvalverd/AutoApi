@@ -3,7 +3,7 @@ import json
 
 from flask import Flask
 
-from AutoApi.auth import add_app, secure, login, logout, create_user
+from AutoApi.auth import add_app, secure, login, logout, user, roles
 from AutoApi.config import config_app
 from AutoApi.controllers import get, post, delete, put, patch
 
@@ -22,8 +22,12 @@ app.route('/logout', methods=['POST'])(
     secure(app, controller=logout)
 )
 
-app.route('/create_user', methods=['POST'])(
-    secure(app, controller=create_user, role='admin')
+app.route('/user', methods=['POST'])(
+    secure(app, controller=user, role='admin')
+)
+
+app.route('/roles', methods=['POST'])(
+    secure(app, controller=roles, role='admin')
 )
 
 
