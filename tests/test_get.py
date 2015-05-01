@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+from operator import itemgetter
 import unittest
 
 from tests import MoviesTest
@@ -72,6 +73,53 @@ class TestGetCollection(MoviesTest):
         response_json = json.loads(response.data)
         self.assertItemsEqual([self.movies[0]], response_json)
 
+
+class TestGetCollectionParameters(MoviesTest):
+
+    def test_fiilter(self):
+        response = self.app.get(
+            '/%s/movies' % self.api,
+            headers=self.headers,
+            query_string={'name': u'Pulp Fiction', 'year': u'1994'}
+        )
+        self.assertEqual(response.status_code, 200)
+        response_json = json.loads(response.data)
+        self.assertItemsEqual([self.movies[1]], response_json)
+
+    def test_sort(self):
+        response = self.app.get(
+            '/%s/movies' % self.api,
+            headers=self.headers,
+            query_string={'_sort': 'year'}
+        )
+        self.assertEqual(response.status_code, 200)
+        response_json = json.loads(response.data)
+        movies = sorted(self.movies, key=itemgetter('year'))
+        self.assertEqual(len(movies), len(response_json))
+        for pos in range(len(movies)):
+            self.assertEqual(movies[pos], response_json[pos])
+
+        response = self.app.get(
+            '/%s/movies' % self.api,
+            headers=self.headers,
+            query_string={'_sort': '-year'}
+        )
+        self.assertEqual(response.status_code, 200)
+        response_json = json.loads(response.data)
+        movies.reverse()
+        self.assertEqual(len(movies), len(response_json))
+        for pos in range(len(movies)):
+            self.assertEqual(movies[pos], response_json[pos])
+
+    def test_limit(self):
+        response = self.app.get(
+            '/%s/movies' % self.api,
+            headers=self.headers,
+            query_string={'_limit': '2'}
+        )
+        self.assertEqual(response.status_code, 200)
+        response_json = json.loads(response.data)
+        self.assertItemsEqual(self.movies[:2], response_json)
 
 if __name__ == '__main__':
     unittest.main()
