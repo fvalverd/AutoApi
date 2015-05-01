@@ -8,7 +8,11 @@ from flask import Response, request
 from AutoApi.utils import format_result, proccess_path
 
 
-DEFAULT_PARAMS = ['_limit', '_sort']
+DEFAULTS = {
+    '_sort': '_id',
+    '_limit': 10,
+    '_skip': 0
+}
 
 
 def get(api, path, mongo_client):
@@ -17,14 +21,16 @@ def get(api, path, mongo_client):
     if resource_id is None:
         conditions.update({
             field: request.args[field]
-            for field in request.args if field not in DEFAULT_PARAMS
+            for field in request.args if field not in DEFAULTS
         })
+        sort_by = request.args.get('_sort') or DEFAULTS['_sort']
+        sort_by = [(sort_by, -1 if '-' in sort_by else 1)]
         limit = request.args.get('_limit')
-        limit = cursor.limit(int(limit) if limit and limit.isdigit() else 10)
-        sort_by = request.args.get('_sort', '_id')
-        sort_by = cursor.sort([(sort_by, -1 if '-' in sort_by else 1)])
-        cursor = mongo_client[api][collection].find(conditions).skip(0)
-        cursor = cursor.skip(0).limit(limit).sort(sort_by)
+        limit = int(limit) if limit and limit.isdigit() else DEFAULTS['_limit']
+        skip = request.args.get('_skip')
+        skip = int(skip) if skip and skip.isdigit() else DEFAULTS['_skip']
+        cursor = mongo_client[api][collection].find(conditions)
+        cursor = cursor.sort(sort_by).limit(limit).skip(skip)
         json_dumped = json.dumps([format_result(element) for element in cursor])
     else:
         try:

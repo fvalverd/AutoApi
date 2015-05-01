@@ -84,7 +84,7 @@ class TestGetCollectionParameters(MoviesTest):
         )
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.data)
-        self.assertItemsEqual([self.movies[1]], response_json)
+        self.assertItemsEqual(self.movies[1:2], response_json)
 
     def test_sort(self):
         response = self.app.get(
@@ -120,6 +120,17 @@ class TestGetCollectionParameters(MoviesTest):
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.data)
         self.assertItemsEqual(self.movies[:2], response_json)
+
+    def test_skip(self):
+        response = self.app.get(
+            '/%s/movies' % self.api,
+            headers=self.headers,
+            query_string={'_skip': '1'}
+        )
+        self.assertEqual(response.status_code, 200)
+        response_json = json.loads(response.data)
+        self.assertItemsEqual(self.movies[1:], response_json)
+
 
 if __name__ == '__main__':
     unittest.main()
