@@ -114,5 +114,5 @@ cp tests.cfg.default tests.cfg
 ```
 
 #**TODO**
-- GET options (filters, sort and fields)
+- ~~GET options (filter, sort and skip)~~
 - Custom roles
