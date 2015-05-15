@@ -11,7 +11,8 @@ from AutoApi.utils import format_result, proccess_path
 DEFAULTS = {
     '_sort': '_id',
     '_limit': 10,
-    '_skip': 0
+    '_skip': 0,
+    '_regex': False
 }
 
 
@@ -29,6 +30,11 @@ def get(api, path, mongo_client):
         limit = int(limit) if limit and limit.isdigit() else DEFAULTS['_limit']
         skip = request.args.get('_skip')
         skip = int(skip) if skip and skip.isdigit() else DEFAULTS['_skip']
+        if request.args.get('_regex') in conditions:
+            conditions[request.args.get('_regex')] = {
+                '$regex': conditions[request.args.get('_regex')],
+                '$options': 'i'
+            }
         cursor = mongo_client[api][collection].find(conditions)
         cursor = cursor.sort(sort_by).limit(limit).skip(skip)
         json_dumped = json.dumps([format_result(element) for element in cursor])

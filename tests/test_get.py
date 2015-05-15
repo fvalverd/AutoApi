@@ -131,6 +131,26 @@ class TestGetCollectionParameters(MoviesTest):
         response_json = json.loads(response.data)
         self.assertItemsEqual(self.movies[1:], response_json)
 
+    def test_regex(self):
+        response = self.app.get(
+            '/%s/movies' % self.api,
+            headers=self.headers,
+            query_string={'name': u'Fiction', '_regex': u'name'}
+        )
+        self.assertEqual(response.status_code, 200)
+        response_json = json.loads(response.data)
+        self.assertItemsEqual(self.movies[1:2], response_json)
+
+    def test_regex2(self):
+        response = self.app.get(
+            '/%s/actors' % self.api,
+            headers=self.headers,
+            query_string={'name': u'.*am.*', '_regex': u'name'}
+        )
+        self.assertEqual(response.status_code, 200)
+        response_json = json.loads(response.data)
+        self.assertItemsEqual(self.actors[0:2], response_json)
+
 
 if __name__ == '__main__':
     unittest.main()
