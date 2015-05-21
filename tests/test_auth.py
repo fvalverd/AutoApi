@@ -101,19 +101,19 @@ class TestCreateUser(MoviesTest):
 
         # create
         response = self.app.post('/%s/movies' % self.api, headers=headers, data='')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 403)
 
         # update put
         response = self.app.put('/%s/movies/%s' % (self.api, self.movies[0]['id']), headers=headers)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 403)
 
         # update patch
         response = self.app.patch('/%s/movies/%s' % (self.api, self.movies[0]['id']), headers=headers)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 403)
 
         # delete
         response = self.app.delete('/%s/movies/%s' % (self.api, self.movies[0]['id']), headers=headers)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 403)
 
     def test_create_role(self):
         test_data = {'email': u'fvalverd', 'password': u'pass', 'api': self.api, 'roles': ['create']}
@@ -133,7 +133,7 @@ class TestCreateUser(MoviesTest):
 
         # read
         response = self.app.get('/%s/movies' % self.api, headers=headers)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 403)
 
         # create
         response = self.app.post(
@@ -146,15 +146,15 @@ class TestCreateUser(MoviesTest):
 
         # update put
         response = self.app.put('/%s/movies/%s' % (self.api, self.movies[0]['id']), headers=headers)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 403)
 
         # update patch
         response = self.app.patch('/%s/movies/%s' % (self.api, self.movies[0]['id']), headers=headers)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 403)
 
         # delete
         response = self.app.delete('/%s/movies/%s' % (self.api, self.movies[0]['id']), headers=headers)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 403)
 
     def test_update_role(self):
         test_data = {'email': u'fvalverd', 'password': u'pass', 'api': self.api, 'roles': ['update']}
@@ -174,11 +174,11 @@ class TestCreateUser(MoviesTest):
 
         # read
         response = self.app.get('/%s/movies' % self.api, headers=headers)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 403)
 
         # create
         response = self.app.post('/%s/movies' % self.api, headers=headers, data='')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 403)
 
         # update put
         response = self.app.put(
@@ -200,7 +200,7 @@ class TestCreateUser(MoviesTest):
 
         # delete
         response = self.app.delete('/%s/movies/%s' % (self.api, self.movies[0]['id']), headers=headers)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 403)
 
     def test_delete_role(self):
         test_data = {'email': u'fvalverd', 'password': u'pass', 'api': self.api, 'roles': ['delete']}
@@ -220,19 +220,19 @@ class TestCreateUser(MoviesTest):
 
         # read
         response = self.app.get('/%s/movies' % self.api, headers=headers)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 403)
 
         # create
         response = self.app.post('/%s/movies' % self.api, headers=headers, data='')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 403)
 
         # update put
         response = self.app.put('/%s/movies/%s' % (self.api, self.movies[0]['id']), headers=headers)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 403)
 
         # update patch
         response = self.app.patch('/%s/movies/%s' % (self.api, self.movies[0]['id']), headers=headers)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 403)
 
         # delete
         response = self.app.delete('/%s/movies/%s' % (self.api, self.movies[1]['id']), headers=headers)
@@ -306,7 +306,7 @@ class TestEditRoles(MoviesTest):
         cls.read_user_header = cls.response_to_headers(response)
 
     def test_edit_read_role(self):
-        for read, status_code in [(False, 401), (True, 200)]:
+        for read, status_code in [(False, 403), (True, 200)]:
             response = self.app.post(
                 '/roles',
                 headers=self.headers,
@@ -319,7 +319,7 @@ class TestEditRoles(MoviesTest):
             self.assertEqual(response.status_code, status_code)
 
     def test_edit_create_role(self):
-        for create, status_code in [(True, 201), (False, 401)]:
+        for create, status_code in [(True, 201), (False, 403)]:
             response = self.app.post(
                 '/roles',
                 headers=self.headers,
@@ -337,7 +337,7 @@ class TestEditRoles(MoviesTest):
             self.assertEqual(response.status_code, status_code)
 
     def test_edit_update_role(self):
-        for update, status_code in [(True, 204), (False, 401)]:
+        for update, status_code in [(True, 204), (False, 403)]:
             response = self.app.post(
                 '/roles',
                 headers=self.headers,
@@ -355,7 +355,7 @@ class TestEditRoles(MoviesTest):
             self.assertEqual(response.status_code, status_code)
 
     def test_edit_delete_role(self):
-        for delete, movie_pos, status_code in [(True, 1, 204), (False, 2, 401)]:
+        for delete, movie_pos, status_code in [(True, 1, 204), (False, 2, 403)]:
             response = self.app.post(
                 '/roles',
                 headers=self.headers,
@@ -373,7 +373,7 @@ class TestEditRoles(MoviesTest):
             self.assertEqual(response.status_code, status_code)
 
     def test_edit_admin_role(self):
-        for admin, email, status_code in [(True, 'user_1', 204), (False, 'user_2', 401)]:
+        for admin, email, status_code in [(True, 'user_1', 204), (False, 'user_2', 403)]:
             response = self.app.post(
                 '/roles',
                 headers=self.headers,

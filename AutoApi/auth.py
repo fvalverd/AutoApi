@@ -107,16 +107,28 @@ def secure(app, controller, role=None):
             argspec = inspect.getargspec(func)[0]
             if 'app' in argspec:
                 kwargs['app'] = app
-            client, is_authorized = _is_authorized(app, api, role)
-            if is_authorized:
-                if 'mongo_client' in argspec:
-                    kwargs['mongo_client'] = client
-                result = func(*args, **kwargs)
-                client.close()
-                return result
+            client, is_authenticated, is_authorized = _check(app, api, role)
+            if is_authenticated:
+                if is_authorized:
+                    if 'mongo_client' in argspec:
+                        kwargs['mongo_client'] = client
+                    result = func(*args, **kwargs)
+                    client.close()
+                    return result
+                return _not_authorized(api)
             return _not_logged(api)
         return wrapped
     return wrapper(controller)
+
+
+def _not_authorized(api):
+    return Response(
+        status=403,
+        response=json.dumps({
+            'message': u'You must be authorized in "%s" api' % api
+        }),
+        mimetype="application/json"
+    )
 
 
 def _not_logged(api):
@@ -206,7 +218,7 @@ def _is_original_admin(app):
     return request.headers.get('X-Email') == app.config['MONGO_ADMIN']
 
 
-def _is_authorized(app, api, role):
+def _check(app, api, role):
     if request.headers.get('X-Email') and request.headers.get('X-Token'):
         with _admin_manager_client(app, logout=False) as client:
             try:
@@ -220,8 +232,11 @@ def _is_authorized(app, api, role):
             if user.get('customData', {}).get('token'):
                 request_token = request.headers.get('X-Token')
                 user_db_token = user['customData']['token']
-                if request_token == user_db_token:
-                    roles = user.get('customData', {}).get('roles') or []
-                    roles.append(None)  # without restriction
-                    return client, 'admin' in roles or role in roles
-    return None, False
+                roles = user.get('customData', {}).get('roles') or []
+                roles.append(None)  # without restriction
+                return (
+                    client,
+                    request_token == user_db_token,
+                    'admin' in roles or role in roles
+                )
+    return None, False, False
