@@ -98,16 +98,16 @@ def add_app(app, controller):
     return wrapper(controller)
 
 
-def secure(app, controller, role=None):
+def secure(app, controller, role=None, api=None):
     def wrapper(func):
         @wraps(func)
         def wrapped(*args, **kwargs):
             params = request.json or request.form.to_dict()
-            api = kwargs.get('api') or params.get('api')
+            _api = api or kwargs.get('api') or params.get('api')
             argspec = inspect.getargspec(func)[0]
             if 'app' in argspec:
                 kwargs['app'] = app
-            client, is_authenticated, is_authorized = _check(app, api, role)
+            client, is_authenticated, is_authorized = _check(app, _api, role)
             if is_authenticated:
                 if is_authorized:
                     if 'mongo_client' in argspec:
@@ -115,8 +115,8 @@ def secure(app, controller, role=None):
                     result = func(*args, **kwargs)
                     client.close()
                     return result
-                return _not_authorized(api)
-            return _not_logged(api)
+                return _not_authorized(_api)
+            return _not_logged(_api)
         return wrapped
     return wrapper(controller)
 
@@ -187,9 +187,7 @@ def _logout_and_remove_token(app, api):
 
 
 def _create_token():
-    return str(uuid.UUID(
-        bytes=OpenSSL.rand.bytes(16)
-    ))
+    return str(uuid.UUID(bytes=OpenSSL.rand.bytes(16)))
 
 
 def _get_mongo_client(app):
