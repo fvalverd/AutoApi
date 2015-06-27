@@ -16,15 +16,7 @@ class BaseTest(unittest.TestCase):
         cls.user = 'user'
         cls.password = 'pass'
         cls.app = app.test_client()
-        with _admin_manager_client(cls.app.application) as client:
-            client[cls.api].add_user(
-                cls.user,
-                cls.password,
-                roles=[
-                    {'role': 'dbOwner', 'db': cls.api}
-                ],
-                customData={'roles': ['admin']}
-            )
+        cls.add_user(cls.api, cls.user, cls.password, ['admin'])
 
     @classmethod
     def tearDownClass(cls):
@@ -39,6 +31,16 @@ class BaseTest(unittest.TestCase):
             'X-Email': response.headers['X-Email'],
             'X-Token': response.headers['X-Token']
         }
+
+    @classmethod
+    def add_user(cls, api, user, password, roles):
+        with _admin_manager_client(cls.app.application) as client:
+            client[api].add_user(user, password, customData={'roles': roles})
+
+    @classmethod
+    def remove_user(cls, api, user):
+        with _admin_manager_client(cls.app.application) as client:
+            client[api].remove_user(user)
 
     def get_admin_headers(self):
         return self.response_to_headers(

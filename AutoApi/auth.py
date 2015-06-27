@@ -60,6 +60,17 @@ def user(mongo_client):
     return _invalid_data()
 
 
+def password(app, mongo_client):
+    params = request.json or request.form.to_dict()
+    if params.get('password') and params.get('api'):
+        user = request.headers['X-Email']
+        if _is_original_admin(app):
+            user = params.get('email') or user
+        mongo_client[params.get('api')].add_user(user, params.get('password'))
+        return Response(status=204)
+    return _invalid_data()
+
+
 def roles(app, mongo_client):
     params = request.json
     if params.get('email') and params.get('api') and params.get('roles'):

@@ -391,5 +391,38 @@ class TestEditRoles(MoviesTest):
             self.assertEqual(response.status_code, status_code)
 
 
+class TestChangePassword(BaseTest):
+
+    def setUp(self):
+        super(TestChangePassword, self).setUp()
+        self._user = u'fvalverd'
+        self._pass = u'pass'
+        self.add_user(self.api, self._user, self._pass, ['read'])
+
+    def tearDown(self):
+        self.remove_user(self.api, self._user)
+        super(TestChangePassword, self).tearDown()
+
+    def test_user_change_password(self):
+        data = {'email': self._user, 'password': self._pass, 'api': self.api}
+        response = self.app.post('/login', data=data)
+        headers = self.response_to_headers(response)
+
+        data['password'] = u'new_pass'
+        response = self.app.post('/password', data=data, headers=headers)
+        self.assertEqual(response.status_code, 204)
+
+        response = self.app.post('/login', data=data)
+        self.assertEqual(response.status_code, 200)
+
+    def test_admin_change_user_password(self):
+        data = {'email': self._user, 'password': u'new_pass', 'api': self.api}
+        response = self.app.post('/password', data=data, headers=self.get_admin_headers())
+        self.assertEqual(response.status_code, 204)
+
+        response = self.app.post('/login', data=data)
+        self.assertEqual(response.status_code, 200)
+
+
 if __name__ == '__main__':
     unittest.main()
