@@ -242,10 +242,9 @@ def _check(app, api, role):
                 request_token = request.headers.get('X-Token')
                 user_db_token = user['customData']['token']
                 roles = user.get('customData', {}).get('roles') or []
-                roles.append(None)  # without restriction
                 return (
                     client,
                     request_token == user_db_token,
-                    'admin' in roles or role in roles
+                    role is None or 'admin' in roles or role in roles
                 )
     return None, False, False
