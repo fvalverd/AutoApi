@@ -175,7 +175,7 @@ def _login_and_get_token(app, api, email, password):
                 {'user': email, 'db': api}
             )
             customData = result.get('users')[0].get('customData')
-            customData['token'] = token
+            customData['tokens'] = customData.get('tokens', []) + [token]
             client[api].command('updateUser', email, customData=customData)
             return token
 
@@ -187,8 +187,8 @@ def _logout_and_remove_token(app, api):
             {'user': request.headers.get('X-Email'), 'db': api}
         )
         customData = result.get('users')[0].get('customData')
-        if request.headers.get('X-Token') == customData['token']:
-            del customData['token']
+        if request.headers.get('X-Token') in customData.get('tokens', []):
+            customData['tokens'].remove(request.headers.get('X-Token'))
             client[api].command(
                 'updateUser',
                 request.headers.get('X-Email'),
@@ -238,13 +238,13 @@ def _check(app, api, role):
             except OperationFailure:
                 pass
             user = (result.get('users') or [{}])[0]
-            if user.get('customData', {}).get('token'):
+            if user.get('customData', {}).get('tokens'):
                 request_token = request.headers.get('X-Token')
-                user_db_token = user['customData']['token']
+                user_db_tokens = user['customData']['tokens']
                 roles = user.get('customData', {}).get('roles') or []
                 return (
                     client,
-                    request_token == user_db_token,
+                    request_token in user_db_tokens,
                     role is None or 'admin' in roles or role in roles
                 )
     return None, False, False
