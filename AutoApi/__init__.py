@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+import logging
 
 from flask import Flask
 
@@ -9,10 +10,11 @@ from AutoApi.controllers import get, post, delete, put, patch
 
 
 app = Flask('AutoApi')
+stream_handler = logging.StreamHandler()
+stream_handler.setLevel(logging.WARN)
+app.logger.addHandler(stream_handler)
 config_app(app)
 
-
-# Users
 
 app.route('/login', methods=['POST'])(
     add_app(app, controller=login)
@@ -34,8 +36,6 @@ app.route('/roles', methods=['POST'])(
     secure(app, controller=roles, role='admin')
 )
 
-
-# Resurces
 
 app.route('/<api>/<path:path>', methods=['GET'])(
     secure(app, controller=get, role='read')
