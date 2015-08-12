@@ -25,7 +25,10 @@ def get(api, path, mongo_client):
             for field in request.args if field not in DEFAULTS
         })
         sort_by = request.args.get('_sort') or DEFAULTS['_sort']
-        sort_by = [(sort_by, -1 if '-' in sort_by else 1)]
+        sort_by = [(
+            sort_by[1:] if '-' == sort_by[0] else sort_by,
+            -1 if '-' == sort_by[0] else 1
+        )]
         limit = request.args.get('_limit')
         limit = int(limit) if limit and limit.isdigit() else DEFAULTS['_limit']
         skip = request.args.get('_skip')
@@ -37,26 +40,26 @@ def get(api, path, mongo_client):
             }
         cursor = mongo_client[api][collection].find(conditions)
         cursor = cursor.sort(sort_by).limit(limit).skip(skip)
-        json_dumped = json.dumps([format_result(element) for element in cursor])
+        response = json.dumps([format_result(element) for element in cursor])
     else:
         try:
             conditions.update({'_id': ObjectId(resource_id)})
         except InvalidId:
-            json_dumped = json.dumps({
+            response = json.dumps({
                 'message': u'Resource "%s" is invalid' % resource_id
             })
             status = 404
         else:
             result = mongo_client[api][collection].find_one(conditions)
             if result is not None:
-                json_dumped = json.dumps(format_result(result))
+                response = json.dumps(format_result(result))
             else:
-                json_dumped = json.dumps({
+                response = json.dumps({
                     'message': u'Resource "%s" not found' % resource_id
                 })
                 status = 404
     return Response(
-        response=json_dumped,
+        response=response,
         headers={'Content-Type': 'application/%s+json' % (
             'collection' if resource_id is None else 'resource'
         )},
