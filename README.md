@@ -36,7 +36,7 @@ X-Token: ADMIN_USER_TOKEN
 ### Create user ###
 Each API has their own users, so an admin user has to create it specifying the API and CRUD roles like this:
 ```
-POST /create_user
+POST /user
 
 Content-Type: application/json
 X-Email: ADMIN_USER
