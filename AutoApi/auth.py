@@ -20,8 +20,8 @@ def login(app):
     if params.get('email') and params.get('api'):
         token = _login_and_get_token(
             app,
-            params.get('api'),
-            email=params.get('email'),
+            params['api'],
+            email=params['email'],
             password=params.get('password')
         )
         if token is not None:
@@ -161,6 +161,7 @@ def _invalid_data():
 
 
 def _login_and_get_token(app, api, email, password):
+    api = 'admin' if app.config['MONGO_ADMIN'] == email else api
     client = _get_mongo_client(app)
     try:
         client[api].authenticate(email, password)
@@ -181,14 +182,17 @@ def _login_and_get_token(app, api, email, password):
 
 
 def _logout_and_remove_token(app, api):
+    token = request.headers.get('X-Token')
+    email = request.headers.get('X-Email')
+    api = 'admin' if app.config['MONGO_ADMIN'] == email else api
     with _admin_manager_client(app) as client:
         result = client[api].command(
             'usersInfo',
-            {'user': request.headers.get('X-Email'), 'db': api}
+            {'user': email, 'db': api}
         )
         customData = result.get('users')[0].get('customData')
-        if request.headers.get('X-Token') in customData.get('tokens', []):
-            customData['tokens'].remove(request.headers.get('X-Token'))
+        if token in customData.get('tokens', []):
+            customData['tokens'].remove(token)
             client[api].command(
                 'updateUser',
                 request.headers.get('X-Email'),
