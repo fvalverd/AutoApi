@@ -9,7 +9,7 @@ from AutoApi.utils import proccess_path
 
 
 def patch(api, path, mongo_client):
-    params = request.json
+    params = request.json or request.form.to_dict()
     resource_id, collection, conditions = proccess_path(path=path)
     json_dumped = None
     status = 204

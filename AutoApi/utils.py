@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-def add_conditions_into_params(params, conditions):
+def _update(params, conditions):
     for key in ['id', '_id']:
         if key in params:
             del params[key]
@@ -20,5 +20,5 @@ def proccess_path(path='', params=None):
     resource_id = None if is_odd else elements.pop(-1)
     collection = elements.pop(-1)
     params = params or {}
-    add_conditions_into_params(params, dict(zip(elements[0::2], elements[1::2])))
+    _update(params, dict(zip(elements[0::2], elements[1::2])))
     return resource_id, collection, params
