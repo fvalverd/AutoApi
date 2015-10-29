@@ -25,6 +25,7 @@ MongoDB 3.X.
     author='Felipe Valverde Campos',
     author_email='felipe.valverde.campos@gmail.com',
     url='https://github.com/fvalverd/AutoApi',
+    download_url='https://github.com/fvalverd/AutoApi/tarball/0.0.1'
     license='MIT',
     packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
     include_package_data=True,
