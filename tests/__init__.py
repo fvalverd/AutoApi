@@ -2,7 +2,7 @@
 import unittest
 import json
 
-from AutoApi import app
+from AutoApi.app import app
 from AutoApi.auth import _admin_manager_client
 from AutoApi.utils import format_result
 
