@@ -5,7 +5,7 @@ from bson.objectid import ObjectId
 from bson.errors import InvalidId
 from flask import Response, request
 
-from AutoApi.utils import format_result, proccess_path
+from ..utils import format_result, proccess_path
 
 
 DEFAULTS = {

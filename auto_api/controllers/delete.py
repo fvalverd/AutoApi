@@ -5,7 +5,7 @@ from bson.objectid import ObjectId
 from bson.errors import InvalidId
 from flask import request, Response
 
-from AutoApi.utils import proccess_path
+from ..utils import proccess_path
 
 
 def delete(api, path, mongo_client):

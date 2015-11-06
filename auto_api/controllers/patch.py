@@ -5,17 +5,17 @@ from bson.objectid import ObjectId
 from bson.errors import InvalidId
 from flask import request, Response
 
-from AutoApi.utils import proccess_path
+from ..utils import proccess_path
 
 
-def put(api, path, mongo_client):
+def patch(api, path, mongo_client):
     params = request.json or request.form.to_dict()
     resource_id, collection, conditions = proccess_path(path=path)
     json_dumped = None
     status = 204
     if resource_id is None:
         json_dumped = json.dumps({
-            'message': u'Not supported collection update/replace'
+            'message': u'Not supported collection update'
         })
         status = 404
     else:
@@ -31,9 +31,10 @@ def put(api, path, mongo_client):
             })
             status = 404
         else:
+            params['_id'] = conditions['_id']
             result = mongo_client[api][collection].update(
                 conditions,
-                params
+                {'$set': params}
             )
             if result['n'] == 0:
                 json_dumped = json.dumps({

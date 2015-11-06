@@ -2,7 +2,7 @@
 from pymongo import MongoClient
 from flask.ext.cors import CORS
 
-from AutoApi.auth import _admin_manager_client
+from .auth import _admin_manager_client
 
 
 def config_app(app):

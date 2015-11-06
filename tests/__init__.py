@@ -2,9 +2,9 @@
 import unittest
 import json
 
-from AutoApi.app import app
-from AutoApi.auth import _admin_manager_client
-from AutoApi.utils import format_result
+from auto_api.app import app
+from auto_api.auth import _admin_manager_client
+from auto_api.utils import format_result
 
 
 class BaseTest(unittest.TestCase):
