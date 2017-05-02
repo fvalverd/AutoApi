@@ -1,5 +1,21 @@
 #!/bin/bash
 
 set -e
-export AUTOAPI_SETTINGS="$(dirname "$(readlink -f "$0")")"/tests.cfg
-nosetests $@
+
+# get current directory, this is a osx support for $(readlink -f $0)
+DIR=$0
+cd "$(dirname "$DIR")"
+DIR=$(basename "$DIR")
+while [ -L "$DIR" ]
+do
+  DIR=$(readlink "$DIR")
+  cd "$(dirname "$DIR")"
+  DIR=$(basename "$DIR")
+done
+
+# define and export autoapi configuration
+AUTOAPI_SETTINGS="$(dirname "$DIR")"/tests.cfg
+export AUTOAPI_SETTINGS
+
+# run tests wit nose
+nosetests "$@"

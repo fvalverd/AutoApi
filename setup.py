@@ -34,7 +34,7 @@ MongoDB 3.X.
         "Flask==0.10.1",
         "flask-cors==2.0.0",
         "pymongo==2.8",
-        "pyOpenSSL==0.14"
+        "pyOpenSSL==17.0.0"
     ],
     tests_require=['nose'],
     test_suite="tests",
