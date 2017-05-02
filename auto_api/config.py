@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
 
-from pymongo import MongoClient
 from flask_cors import CORS
+from pymongo import MongoClient
 
 from .auth import _admin_manager_client
 
