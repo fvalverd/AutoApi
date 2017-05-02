@@ -5,7 +5,7 @@ import logging
 from flask import Flask
 
 from .auth import add_app, secure, login, logout, user, password, roles
-from .config import config_app
+from .config import autoapi_config
 from .controllers import get, post, delete, put, patch
 
 
@@ -13,7 +13,7 @@ app = Flask('AutoApi')
 stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.WARN)
 app.logger.addHandler(stream_handler)
-config_app(app)
+autoapi_config(app)
 
 
 app.route('/login', methods=['POST'])(

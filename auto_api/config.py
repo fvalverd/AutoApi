@@ -5,7 +5,7 @@ from flask_cors import CORS
 from .auth import _admin_manager_client
 
 
-def config_app(app):
+def autoapi_config(app):
     CORS(app, resources={r"/*": {"origins": "*"}})
     app.config.from_envvar('AUTOAPI_SETTINGS')
     with _admin_manager_client(app) as client:
