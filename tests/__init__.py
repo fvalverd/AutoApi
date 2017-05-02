@@ -3,7 +3,7 @@ import unittest
 import json
 
 from auto_api.app import app
-from auto_api.auth import _admin_manager_client
+from auto_api.mongodb import admin
 from auto_api.utils import format_result
 
 
@@ -20,7 +20,7 @@ class BaseTest(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        with _admin_manager_client(cls.app.application) as client:
+        with admin(cls.app.application) as client:
             client[cls.api].authenticate(cls.user, cls.password)
             client.drop_database(cls.api)
         super(BaseTest, cls).tearDownClass()
@@ -34,12 +34,12 @@ class BaseTest(unittest.TestCase):
 
     @classmethod
     def add_user(cls, api, user, password, roles):
-        with _admin_manager_client(cls.app.application) as client:
+        with admin(cls.app.application) as client:
             client[api].add_user(user, password, customData={'roles': roles})
 
     @classmethod
     def remove_user(cls, api, user):
-        with _admin_manager_client(cls.app.application) as client:
+        with admin(cls.app.application) as client:
             client[api].remove_user(user)
 
     def get_admin_headers(self):
@@ -93,7 +93,7 @@ class MoviesTest(LoggedTest):
 
     @classmethod
     def _clean_movies_and_actors(cls):
-        with _admin_manager_client(cls.app.application) as client:
+        with admin(cls.app.application) as client:
             client[cls.api].actors.drop()
             client[cls.api].movies.drop()
             client[cls.api].stars.drop()
@@ -102,7 +102,7 @@ class MoviesTest(LoggedTest):
     def setUpClass(cls):
         super(MoviesTest, cls).setUpClass()
         cls._clean_movies_and_actors()
-        with _admin_manager_client(cls.app.application) as client:
+        with admin(cls.app.application) as client:
             client[cls.api].actors.insert(cls.actors)
             cls.actors = [format_result(actor) for actor in cls.actors]
             for movie in cls.movies:

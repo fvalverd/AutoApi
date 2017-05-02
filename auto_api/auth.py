@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from contextlib import contextmanager
 from functools import wraps
 import inspect
 import json
@@ -7,8 +6,9 @@ import uuid
 
 from flask import jsonify, request, Response
 import OpenSSL
-from pymongo import MongoClient
 from pymongo.errors import OperationFailure, PyMongoError
+
+from .mongodb import admin, get_client
 
 
 BUILT_IN_ROLES = ['read', 'update', 'create', 'delete', 'admin']
@@ -164,7 +164,7 @@ def _invalid_data():
 
 def _login_and_get_token(app, api, email, password):
     api = 'admin' if app.config['MONGO_ADMIN'] == email else api
-    client = _get_mongo_client(app)
+    client = get_client(app)
     try:
         client[api].authenticate(email, password)
         client[api].logout()
@@ -172,7 +172,7 @@ def _login_and_get_token(app, api, email, password):
         pass
     else:
         token = _create_token()
-        with _admin_manager_client(app, client=client) as client:
+        with admin(app, client=client) as client:
             result = client[api].command(
                 'usersInfo',
                 {'user': email, 'db': api}
@@ -187,7 +187,7 @@ def _logout_and_remove_token(app, api):
     token = request.headers.get('X-Token')
     email = request.headers.get('X-Email')
     api = 'admin' if app.config['MONGO_ADMIN'] == email else api
-    with _admin_manager_client(app) as client:
+    with admin(app) as client:
         result = client[api].command(
             'usersInfo',
             {'user': email, 'db': api}
@@ -207,35 +207,13 @@ def _create_token():
     return str(uuid.UUID(bytes=OpenSSL.rand.bytes(16)))
 
 
-def _get_mongo_client(app):
-    return MongoClient(
-        host=app.config['MONGO_HOST'],
-        port=app.config['MONGO_PORT']
-    )
-
-
-@contextmanager
-def _admin_manager_client(app, client=None, logout=True):
-    client = client or _get_mongo_client(app)
-    try:
-        client.admin.authenticate(
-            app.config['MONGO_ADMIN'],
-            app.config['MONGO_ADMIN_PASS']
-        )
-    except PyMongoError:
-        pass
-    yield client
-    if logout:
-        client.admin.logout()
-
-
 def _is_original_admin(app):
     return request.headers.get('X-Email') == app.config['MONGO_ADMIN']
 
 
 def _check(app, api, role):
     if request.headers.get('X-Email') and request.headers.get('X-Token'):
-        with _admin_manager_client(app, logout=False) as client:
+        with admin(app, logout=False) as client:
             try:
                 result = client[api].command('usersInfo', {
                     'user': request.headers['X-Email'],

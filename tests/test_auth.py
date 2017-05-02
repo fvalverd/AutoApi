@@ -2,7 +2,7 @@
 import json
 import unittest
 
-from tests import BaseTest, MoviesTest
+from . import BaseTest, MoviesTest
 
 
 class TestLogin(BaseTest):

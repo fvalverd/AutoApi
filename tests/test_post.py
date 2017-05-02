@@ -2,7 +2,7 @@
 import json
 import unittest
 
-from tests import MoviesTest
+from . import MoviesTest
 
 
 class TestPost(MoviesTest):

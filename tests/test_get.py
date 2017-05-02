@@ -3,7 +3,7 @@ import json
 from operator import itemgetter
 import unittest
 
-from tests import MoviesTest
+from . import MoviesTest
 
 
 class TestGetResource(MoviesTest):
