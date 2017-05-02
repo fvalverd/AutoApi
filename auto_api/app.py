@@ -3,7 +3,7 @@ import json
 
 from flask import Flask
 
-from .auth import add_app, secure, login, logout, user, password, roles
+from .auth import add_app, login, logout, password, roles, secure, user
 from .config import autoapi_config
 from .controllers import get, post, delete, put, patch
 
