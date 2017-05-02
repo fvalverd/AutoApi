@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import json
-import logging
 
 from flask import Flask
 
@@ -10,9 +9,6 @@ from .controllers import get, post, delete, put, patch
 
 
 app = Flask('AutoApi')
-stream_handler = logging.StreamHandler()
-stream_handler.setLevel(logging.WARN)
-app.logger.addHandler(stream_handler)
 autoapi_config(app)
 
 
