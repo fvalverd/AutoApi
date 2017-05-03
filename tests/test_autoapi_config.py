@@ -69,3 +69,7 @@ class AutoApiConfigAuthTest(unittest.TestCase):
     def test_default_only_pass(self):
         with self.assertRaises(AutoApiMissingAdminConfig):
             AutoApi(auth=True)
+
+
+if __name__ == '__main__':
+    unittest.main()
