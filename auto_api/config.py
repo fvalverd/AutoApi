@@ -10,7 +10,7 @@ from .mongodb import admin, ADMIN_KEYS
 AUTH_KEY = 'AUTOAPI_AUTH'
 
 
-def autoapi_config(app):
+def config(app):
     # loggin
     _config_logging(app)
 

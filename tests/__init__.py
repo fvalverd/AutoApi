@@ -2,7 +2,7 @@
 import unittest
 import json
 
-from auto_api.app import app
+from auto_api import AutoApi
 from auto_api.mongodb import admin
 from auto_api.utils import format_result
 
@@ -15,7 +15,8 @@ class BaseTest(unittest.TestCase):
         cls.api = 'api_tests'
         cls.user = 'user'
         cls.password = 'pass'
-        cls.app = app.test_client()
+        cls.autoapi = AutoApi(auth=True)
+        cls.app = cls.autoapi.app.test_client()
         cls.add_user(cls.api, cls.user, cls.password, ['admin'])
 
     @classmethod

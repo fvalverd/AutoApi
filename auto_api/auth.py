@@ -4,10 +4,12 @@ import inspect
 import json
 import uuid
 
-from flask import jsonify, request, Response
+from flask import request
 import OpenSSL
 from pymongo.errors import OperationFailure, PyMongoError
 
+from .messages import invalid, message, ok_no_data, response, \
+    unauthorized, unlogged
 from .mongodb import admin, get_client
 
 
@@ -25,25 +27,18 @@ def login(app):
             password=params.get('password')
         )
         if token is not None:
-            return Response(
-                response=json.dumps({
-                    'email': params.get('email'),
-                    'token': token
-                }),
-                headers={
-                    'X-Email': params.get('email'),
-                    'X-Token': token
-                },
-                mimetype="application/json"
+            return response(
+                data={'email': params.get('email'), 'token': token},
+                headers={'X-Email': params.get('email'), 'X-Token': token}
             )
-    return _invalid_data()
+    return invalid()
 
 
 def logout(app):
     params = request.json or request.form.to_dict()
     if _logout_and_remove_token(app, params.get('api')):
-        return Response(status=204)
-    return _invalid_data()
+        return ok_no_data()
+    return invalid()
 
 
 def user(mongo_client):
@@ -56,8 +51,8 @@ def user(mongo_client):
                 'roles': params.get('roles') or DEFAULT_ROLES
             }
         )
-        return Response(status=204)
-    return _invalid_data()
+        return ok_no_data()
+    return invalid()
 
 
 def password(app, mongo_client):
@@ -69,8 +64,8 @@ def password(app, mongo_client):
                 params.get('email'),
                 params.get('password')
             )
-            return Response(status=204)
-    return _invalid_data()
+            return ok_no_data()
+    return invalid()
 
 
 def roles(app, mongo_client):
@@ -82,7 +77,7 @@ def roles(app, mongo_client):
                 'db': params.get('api')
             })
         except OperationFailure:
-            return _invalid_data()
+            return invalid()
         else:
             if result.get('users'):
                 user = result['users'][0]
@@ -98,68 +93,31 @@ def roles(app, mongo_client):
                     params.get('email'),
                     customData=customData
                 )
-                return Response(status=204)
-    return _invalid_data()
+                return ok_no_data()
+    return invalid()
 
 
-def add_app(app, controller):
-    def wrapper(func):
-        @wraps(func)
-        def wrapped(*args, **kwargs):
-            return func(*args, app=app, **kwargs)
-        return wrapped
-    return wrapper(controller)
-
-
-def secure(app, controller, role=None, api=None):
-    def wrapper(func):
-        @wraps(func)
+def secure(app, role=None, api=None, auth=True):
+    def wrapper(controller):
+        @wraps(controller)
         def wrapped(*args, **kwargs):
             params = request.json or request.form.to_dict()
             _api = api or kwargs.get('api') or params.get('api')
-            argspec = inspect.getargspec(func)[0]
+            argspec = inspect.getargspec(controller)[0]
             if 'app' in argspec:
                 kwargs['app'] = app
-            client, is_authenticated, is_authorized = _check(app, _api, role)
-            if is_authenticated:
-                if is_authorized:
+            client, is_logged, is_auth = _check(app, _api, role, auth=auth)
+            if is_logged:
+                if is_auth:
                     if 'mongo_client' in argspec:
                         kwargs['mongo_client'] = client
-                    result = func(*args, **kwargs)
+                    result = controller(*args, **kwargs)
                     client.close()
                     return result
-                return _not_authorized(_api)
-            return _not_logged(_api)
+                return unauthorized(_api)
+            return unlogged(_api)
         return wrapped
-    return wrapper(controller)
-
-
-def _not_authorized(api):
-    return Response(
-        status=403,
-        response=json.dumps({
-            'message': u'You must be authorized in "%s" api' % api
-        }),
-        mimetype="application/json"
-    )
-
-
-def _not_logged(api):
-    return Response(
-        status=401,
-        response=json.dumps({
-            'message': u'You must be logged in "%s" api' % api
-        }),
-        mimetype="application/json"
-    )
-
-
-def _invalid_data():
-    return Response(
-        status=400,
-        response=json.dumps({'message': u'Invalid email/password/api'}),
-        mimetype="application/json"
-    )
+    return wrapper
 
 
 def _login_and_get_token(app, api, email, password):
@@ -211,11 +169,14 @@ def _is_original_admin(app):
     return request.headers.get('X-Email') == app.config['MONGO_ADMIN']
 
 
-def _check(app, api, role):
+def _check(app, api, role, auth=True):
+    client = get_client(app)
+    if not auth:
+        return client, True, True
     if request.headers.get('X-Email') and request.headers.get('X-Token'):
-        with admin(app, logout=False) as client:
+        with admin(app, client=client, logout=False) as admin_client:
             try:
-                result = client[api].command('usersInfo', {
+                result = admin_client[api].command('usersInfo', {
                     'user': request.headers['X-Email'],
                     'db': 'admin' if _is_original_admin(app) else api
                 })
@@ -227,7 +188,7 @@ def _check(app, api, role):
                 user_db_tokens = user['customData']['tokens']
                 roles = user.get('customData', {}).get('roles') or []
                 return (
-                    client,
+                    admin_client,
                     request_token in user_db_tokens,
                     role is None or 'admin' in roles or role in roles
                 )
