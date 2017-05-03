@@ -4,61 +4,65 @@ import logging
 from flask_cors import CORS
 from pymongo import MongoClient
 
+from .exceptions import AutoApiMissingAdminConfig
 from .mongodb import admin, ADMIN_KEYS
 
 
-AUTH_KEY = 'AUTOAPI_AUTH'
+AUTOAPI_SETTINGS_VAR = 'AUTOAPI_SETTINGS'
 
 
-def config(app):
+def config(autoapi, cors=True, logging_level=logging.WARN, path=None):
     # loggin
-    _config_logging(app)
+    _config_logging(autoapi, level=logging_level)
 
     # cross domain
-    CORS(app, resources={r'/*': {'origins': '*'}})
+    if cors:
+        CORS(autoapi.app, resources={r'/*': {'origins': '*'}})
 
     # config file
-    _read_config(app)
+    _read_config(autoapi, path)
 
     # admin user
-    if app.config[AUTH_KEY]:
-        _config_admin_user(app)
+    if autoapi.auth:
+        _config_admin_user(autoapi)
 
 
-def _config_logging(app):
+def _config_logging(autoapi, level):
     stream_handler = logging.StreamHandler()
-    stream_handler.setLevel(logging.WARN)
-    app.logger.addHandler(stream_handler)
+    stream_handler.setLevel(level)
+    autoapi.app.logger.addHandler(stream_handler)
 
 
-def _read_config(app):
-    try:
-        app.config.from_envvar('AUTOAPI_SETTINGS')
-    except IOError:
-        pass
-    # both keys must exist for auth
-    app.config[AUTH_KEY] = all(key in app.config for key in ADMIN_KEYS.values())
-    # TODO: 1 key -> exception, autoapi requiered both !
-
-
-def _config_admin_user(app):
-    with admin(app) as client:
-        # TODO: check if an admin exists in order to not run this
+def _read_config(autoapi, path):
+    if path is not None:
+        autoapi.app.config.from_pyfile(path)
+    else:
         try:
-            client.admin.add_user(
-                *[app.config[key] for key in ADMIN_KEYS.values()],
-                roles=[
-                    {'role': 'userAdminAnyDatabase', 'db': 'admin'}
-                ],
-                customData={
-                    'roles': ['admin']
-                }
-            )
-        except:
-            pass
-        with admin(app, client=client) as client:
-            client.admin.command(
-                'grantRolesToUser',
-                app.config[ADMIN_KEYS['user']],
-                roles=['readWriteAnyDatabase']
-            )
+            autoapi.app.config.from_envvar(AUTOAPI_SETTINGS_VAR)
+        except RuntimeError:
+            pass  # Ignore if AUTOAPI_SETTINGS is not setted
+
+    if autoapi.auth and any(key not in autoapi.app.config for key in ADMIN_KEYS.values()):
+        raise AutoApiMissingAdminConfig('Check your configuration !')
+
+
+def _config_admin_user(autoapi):
+    with admin(autoapi.app) as client:
+        # admin for all databases
+        # TODO: check if an admin exists in order to not run this
+        client.admin.add_user(
+            *[autoapi.app.config[key] for key in ADMIN_KEYS.values()],
+            roles=[
+                {'role': 'userAdminAnyDatabase', 'db': 'admin'}
+            ],
+            customData={
+                'roles': ['admin']
+            }
+        )
+
+        # admin read & write
+        client.admin.command(
+            'grantRolesToUser',
+            autoapi.app.config[ADMIN_KEYS['user']],
+            roles=['readWriteAnyDatabase']
+        )

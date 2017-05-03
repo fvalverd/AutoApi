@@ -10,10 +10,10 @@ from .controllers import get, post, delete, put, patch
 
 class AutoApi(object):
 
-    def __init__(self, auth=False):
+    def __init__(self, auth=False, cors=True, config_path=None):
         self.auth = auth
         self.app = Flask(self.__class__.__name__)
-        config(self.app)
+        config(self, cors=cors, path=config_path)
         self.load_auth()
         self.load_methods()
 

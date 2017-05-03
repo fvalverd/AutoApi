@@ -31,6 +31,7 @@ MongoDB 3.X.
     include_package_data=True,
     zip_safe=False,
     install_requires=[
+        "click==6.7",
         "Flask==0.10.1",
         "flask-cors==2.0.0",
         "pymongo==2.8",

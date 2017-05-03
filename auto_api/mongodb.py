@@ -20,13 +20,10 @@ def get_client(app):
 @contextmanager
 def admin(app, client=None, logout=True):
     client = client or get_client(app)
-    try:
-        client.admin.authenticate(*[
-            app.config[key]
-            for key in ADMIN_KEYS.values()
-        ])
-    except PyMongoError:
-        pass
+    client.admin.authenticate(*[
+        app.config[key]
+        for key in ADMIN_KEYS.values()
+    ])
     yield client
     if logout:
         client.admin.logout()
