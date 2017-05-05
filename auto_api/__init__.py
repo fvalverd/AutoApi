@@ -3,7 +3,11 @@ from flask import Flask
 
 from .auth import login, logout, password, roles, secure, user
 from .config import config
-from .controllers import get, post, delete, put, patch
+from .controllers.get import get
+from .controllers.post import post
+from .controllers.delete import delete
+from .controllers.put import put
+from .controllers.patch import patch
 
 
 class AutoApi(object):

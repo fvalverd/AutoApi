@@ -6,11 +6,11 @@ import uuid
 
 from flask import request
 import OpenSSL
+from pymongo.errors import OperationFailure, PyMongoError
 
 from .messages import ok_no_data, response, unauthenticated, \
     unauthorized, unlogged
-from .mongodb import admin, ADMIN_KEYS, get_client, OperationFailure, \
-    PyMongoError
+from .mongodb import admin, ADMIN_KEYS, get_client
 from .utils import get_api_from_params
 
 

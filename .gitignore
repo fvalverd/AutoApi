@@ -63,6 +63,6 @@ target/
 
 
 # AutoApi config
-tmp
+.tmp
 tests.cfg
 server.cfg

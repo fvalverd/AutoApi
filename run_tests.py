@@ -13,7 +13,7 @@ def run():
     CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
     # create temporal directory
-    TMP_DIR = os.path.join(CURRENT_DIR, 'tmp')
+    TMP_DIR = os.path.join(CURRENT_DIR, '.tmp')
     if not os.path.exists(TMP_DIR):
         os.mkdir(TMP_DIR)
 
