@@ -2,7 +2,7 @@
 from contextlib import contextmanager
 
 from pymongo import MongoClient
-from pymongo.errors import OperationFailure, PyMongoError
+from pymongo.errors import PyMongoError
 
 
 MONGO_KEYS = {'host': 'MONGO_HOST', 'port': 'MONGO_PORT'}

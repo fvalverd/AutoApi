@@ -21,10 +21,15 @@ def run():
     DB_PATH_AUTH = os.path.join(TMP_DIR, 'data_auth')
 
     # set autoapi environment variable for config
-    os.environ[AUTOAPI_SETTINGS_VAR] = os.path.join(CURRENT_DIR, 'tests.cfg.default')
+    os.environ[AUTOAPI_SETTINGS_VAR] = os.path.join(
+        CURRENT_DIR, 'tests.cfg.default'
+    )
 
     mongobox = MongoBox(mongod_bin='mongod', db_path=DB_PATH, port=MONGO_PORT)
-    mongoboxA = MongoBox(mongod_bin='mongod', auth=True, db_path=DB_PATH_AUTH, port=MONGO_AUTH_PORT)
+    mongoboxA = MongoBox(
+        mongod_bin='mongod', auth=True,
+        db_path=DB_PATH_AUTH, port=MONGO_AUTH_PORT
+    )
 
     try:
         print "Starting mongo servers:"
@@ -55,6 +60,7 @@ def run():
         sys.stdout.flush()
         mongoboxA.stop()
         print "OK"
+
 
 if __name__ == '__main__':
     run()

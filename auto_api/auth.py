@@ -2,13 +2,12 @@
 from contextlib import contextmanager
 from functools import wraps
 import inspect
-import json
 import uuid
 
 from flask import request
 import OpenSSL
 
-from .messages import message, ok_no_data, response, unauthenticated, \
+from .messages import ok_no_data, response, unauthenticated, \
     unauthorized, unlogged
 from .mongodb import admin, ADMIN_KEYS, get_client, OperationFailure, \
     PyMongoError

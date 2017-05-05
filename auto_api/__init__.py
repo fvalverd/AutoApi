@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import json
-
 from flask import Flask
 
 from .auth import login, logout, password, roles, secure, user

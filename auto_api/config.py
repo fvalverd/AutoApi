@@ -4,13 +4,16 @@ import logging
 from flask_cors import CORS
 
 from .exceptions import AutoApiMissingAdminConfig
-from .mongodb import admin, get_client, get_values, ADMIN_KEYS, MONGO_KEYS
+from .mongodb import admin, get_values, ADMIN_KEYS, MONGO_KEYS
 
 
 AUTOAPI_SETTINGS_VAR = 'AUTOAPI_SETTINGS'
 
 
-def config(autoapi, cors=True, logging_level=logging.WARN, path=None, force_port=None):
+def config(
+    autoapi, cors=True, logging_level=logging.WARN,
+    path=None, force_port=None
+):
     # loggin
     _config_logging(autoapi, level=logging_level)
 
@@ -54,12 +57,8 @@ def _config_admin_user(autoapi, client=None):
     with admin(autoapi.app) as client:
         # Ensure that admin user exists
         client.admin.add_user(
-            roles=[
-                {'role': 'userAdminAnyDatabase', 'db': 'admin'}
-            ],
-            customData={
-                'roles': ['admin']
-            },
+            roles=[{'role': 'userAdminAnyDatabase', 'db': 'admin'}],
+            customData={'roles': ['admin']},
             **get_values(autoapi.app.config, ADMIN_KEYS)
         )
 
