@@ -2,15 +2,13 @@ language: python
 python:
   - "2.7"
 install:
-  - sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
-  - echo "deb http://repo.mongodb.org/apt/ubuntu "$(lsb_release -sc)"/mongodb-org/3.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.0.list
+  - sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
+  - echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/ubuntu "$(lsb_release -sc)"/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
   - sudo apt-get update
-  - sudo apt-get install -y libffi-dev libssl-dev mongodb-org=3.0.2 mongodb-org-server=3.0.2 mongodb-org-shell=3.0.2 mongodb-org-mongos=3.0.2 mongodb-org-tools=3.0.2
+  - sudo apt-get install -y libffi-dev libssl-dev mongodb-org=3.4.4 mongodb-org-server=3.4.4 mongodb-org-shell=3.4.4 mongodb-org-mongos=3.4.4 mongodb-org-tools=3.4.4
+  - pip install mock nose mongobox coverage coveralls
   - python setup.py develop
-  - pip install coveralls
-before_script:
-  - cp tests.cfg.default tests.cfg
 script:
-  - AUTOAPI_SETTINGS=./tests.cfg coverage run --source=auto_api setup.py test
+  - ./run_tests.py -v -s --with-coverage --cover-package=auto_api
 after_script:
   - coveralls

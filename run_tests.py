@@ -9,7 +9,7 @@ from auto_api.config import AUTOAPI_SETTINGS_VAR
 from tests import MONGO_PORT, MONGO_AUTH_PORT
 
 
-if __name__ == '__main__':
+def run():
     CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
     # create temporal directory
@@ -55,3 +55,6 @@ if __name__ == '__main__':
         sys.stdout.flush()
         mongoboxA.stop()
         print "OK"
+
+if __name__ == '__main__':
+    run()

@@ -42,7 +42,7 @@ MongoDB 3.X.
         'mock',
         'mongobox==0.1.6'
     ],
-    test_suite='tests',
+    test_suite='run_tests.run',
     entry_points="""
     # -*- Entry points: -*-
     """,
