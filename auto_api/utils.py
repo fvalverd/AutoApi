@@ -22,3 +22,8 @@ def proccess_path(path='', params=None):
     params = params or {}
     _update(params, dict(zip(elements[0::2], elements[1::2])))
     return resource_id, collection, params
+
+
+def get_api_from_params(request):
+    params = request.json or request.form.to_dict()
+    return params.get('api')

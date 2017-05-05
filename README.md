@@ -2,10 +2,10 @@ AutoApi
 =======
 [![Build Status](https://travis-ci.org/fvalverd/AutoApi.svg?branch=master)](https://travis-ci.org/fvalverd/AutoApi) [![Coverage Status](https://coveralls.io/repos/fvalverd/AutoApi/badge.svg)](https://coveralls.io/r/fvalverd/AutoApi) [![Code Climate](https://codeclimate.com/github/fvalverd/AutoApi/badges/gpa.svg)](https://codeclimate.com/github/fvalverd/AutoApi)
 
-AutoApi was created to not wasting time to developing an API REST at the project start. Has an authentication system to provided secure data and the support for multiple APIs.
+The goal of AutoApi is avoid developing an API REST at the start of a project. Has an authentication system and the support for multiple APIs.
 
 ### Authentication ###
-Each API has their own users, so users have to logged specifying the API like this:
+Each API has their own users, so users have to logged specifying the API, like this:
 ```
 POST /login
 

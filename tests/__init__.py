@@ -7,30 +7,37 @@ from auto_api.mongodb import admin
 from auto_api.utils import format_result
 
 
+MONGO_PORT = 27018
+MONGO_AUTH_PORT = 27019
+
+
 class BaseTest(unittest.TestCase):
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls, auth=False):
         super(BaseTest, cls).setUpClass()
         cls.api = 'api_tests'
         cls.user = 'user'
         cls.password = 'pass'
-        cls.autoapi = AutoApi(auth=True)
+        cls.port = MONGO_AUTH_PORT if auth else MONGO_PORT
+        cls.autoapi = AutoApi(auth=auth, port=cls.port)
         cls.app = cls.autoapi.app.test_client()
-        cls.add_user(cls.api, cls.user, cls.password, ['admin'])
+        if auth:
+            cls.add_user(cls.api, cls.user, cls.password, ['admin'])
 
     @classmethod
     def tearDownClass(cls):
         with admin(cls.app.application) as client:
-            client[cls.api].authenticate(cls.user, cls.password)
+            if cls.autoapi.auth:
+                client[cls.api].authenticate(cls.user, cls.password)
             client.drop_database(cls.api)
         super(BaseTest, cls).tearDownClass()
 
     @classmethod
     def response_to_headers(cls, response):
         return {
-            'X-Email': response.headers['X-Email'],
-            'X-Token': response.headers['X-Token']
+            'X-Email': response.headers.get('X-Email'),
+            'X-Token': response.headers.get('X-Token')
         }
 
     @classmethod
@@ -53,7 +60,14 @@ class BaseTest(unittest.TestCase):
         )
 
 
-class LoggedTest(BaseTest):
+class BaseAuthTest(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super(BaseAuthTest, cls).setUpClass(auth=True)
+
+
+# TODO: RequestMixin to add credentials and content-type HEADERS
+class LoggedTest(BaseAuthTest):
 
     @classmethod
     def setUpClass(cls):

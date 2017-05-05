@@ -2,10 +2,10 @@
 import json
 import unittest
 
-from . import BaseTest, MoviesTest
+from . import BaseAuthTest, MoviesTest
 
 
-class TestLogin(BaseTest):
+class TestLogin(BaseAuthTest):
 
     def test_unauthorized(self):
         for verb in [self.app.get, self.app.post, self.app.put, self.app.patch, self.app.delete]:
@@ -40,7 +40,7 @@ class TestLogin(BaseTest):
         self.assertEqual(response.status_code, 200)
 
 
-class TestLogout(BaseTest):
+class TestLogout(BaseAuthTest):
 
     def test_logout(self):
         data = {'email': self.user, 'password': self.password, 'api': self.api}
@@ -391,7 +391,7 @@ class TestEditRoles(MoviesTest):
             self.assertEqual(response.status_code, status_code)
 
 
-class TestChangePassword(BaseTest):
+class TestChangePassword(BaseAuthTest):
 
     def setUp(self):
         super(TestChangePassword, self).setUp()

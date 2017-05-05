@@ -2,7 +2,7 @@
 import json
 import unittest
 
-from . import MoviesTest
+from .. import MoviesTest
 
 
 class TestDeleteResource(MoviesTest):
@@ -61,3 +61,7 @@ class TestDeleteCollection(MoviesTest):
         self.assertEqual(response.status_code, 204)
         response_json = self._count_test('movies', 2)
         self.assertNotIn(self.movies[0], response_json)
+
+
+if __name__ == '__main__':
+    unittest.main()

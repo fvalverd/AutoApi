@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from contextlib import contextmanager
 from functools import wraps
 import inspect
 import json
@@ -6,11 +7,12 @@ import uuid
 
 from flask import request
 import OpenSSL
-from pymongo.errors import OperationFailure, PyMongoError
 
 from .messages import invalid, message, ok_no_data, response, \
     unauthorized, unlogged
-from .mongodb import admin, get_client
+from .mongodb import admin, ADMIN_KEYS, get_client, OperationFailure, \
+    PyMongoError
+from .utils import get_api_from_params
 
 
 BUILT_IN_ROLES = ['read', 'update', 'create', 'delete', 'admin']
@@ -57,14 +59,14 @@ def user(mongo_client):
 
 def password(app, mongo_client):
     params = request.json or request.form.to_dict()
-    if params.get('password') and params.get('api'):
-        _, __, is_admin = _check(app, params.get('api'), 'admin')
-        if is_admin or params.get('email') == request.headers['X-Email']:
-            mongo_client[params.get('api')].add_user(
-                params.get('email'),
-                params.get('password')
-            )
-            return ok_no_data()
+    api, email, password = (
+        params.get('api'), params.get('email'), params.get('password')
+    )
+    if password and api:
+        with check(app, api, 'admin', auth=True) as (_, __, admin):
+            if admin or email == request.headers['X-Email']:
+                mongo_client[api].add_user(email, password)
+                return ok_no_data()
     return invalid()
 
 
@@ -97,31 +99,37 @@ def roles(app, mongo_client):
     return invalid()
 
 
-def secure(app, role=None, api=None, auth=True):
+def secure(app, role=None, api=None, auth=False):
     def wrapper(controller):
         @wraps(controller)
         def wrapped(*args, **kwargs):
-            params = request.json or request.form.to_dict()
-            _api = api or kwargs.get('api') or params.get('api')
-            argspec = inspect.getargspec(controller)[0]
-            if 'app' in argspec:
-                kwargs['app'] = app
-            client, is_logged, is_auth = _check(app, _api, role, auth=auth)
-            if is_logged:
-                if is_auth:
-                    if 'mongo_client' in argspec:
-                        kwargs['mongo_client'] = client
-                    result = controller(*args, **kwargs)
-                    client.close()
-                    return result
-                return unauthorized(_api)
-            return unlogged(_api)
+            _api = api or kwargs.get('api') or get_api_from_params(request)
+
+            # Check authentication and authorization
+            with check(app, _api, role, auth) as (client, logged, authorized):
+                # Return error messages
+                if not logged:
+                    return unlogged(_api)
+                if not authorized:
+                    return unauthorized(_api)
+
+                # Inject requested parameters
+                argspec = inspect.getargspec(controller)[0]
+                if 'app' in argspec:
+                    kwargs['app'] = app
+                if 'mongo_client' in argspec:
+                    kwargs['mongo_client'] = client
+
+                # Apply original controller
+                return controller(*args, **kwargs)
         return wrapped
     return wrapper
 
 
+# TODO: next functions are utils
+
 def _login_and_get_token(app, api, email, password):
-    api = 'admin' if app.config['MONGO_ADMIN'] == email else api
+    api = 'admin' if app.config[ADMIN_KEYS['name']] == email else api
     client = get_client(app)
     try:
         client[api].authenticate(email, password)
@@ -144,7 +152,7 @@ def _login_and_get_token(app, api, email, password):
 def _logout_and_remove_token(app, api):
     token = request.headers.get('X-Token')
     email = request.headers.get('X-Email')
-    api = 'admin' if app.config['MONGO_ADMIN'] == email else api
+    api = 'admin' if app.config[ADMIN_KEYS['name']] == email else api
     with admin(app) as client:
         result = client[api].command(
             'usersInfo',
@@ -166,17 +174,18 @@ def _create_token():
 
 
 def _is_original_admin(app):
-    return request.headers.get('X-Email') == app.config['MONGO_ADMIN']
+    return request.headers.get('X-Email') == app.config[ADMIN_KEYS['name']]
 
 
-def _check(app, api, role, auth=True):
+@contextmanager
+def check(app, api, role, auth=False):
     client = get_client(app)
     if not auth:
-        return client, True, True
-    if request.headers.get('X-Email') and request.headers.get('X-Token'):
-        with admin(app, client=client, logout=False) as admin_client:
+        yield (client, True, True)
+    elif request.headers.get('X-Email') and request.headers.get('X-Token'):
+        with admin(app, client=client, logout=False) as client:
             try:
-                result = admin_client[api].command('usersInfo', {
+                result = client[api].command('usersInfo', {
                     'user': request.headers['X-Email'],
                     'db': 'admin' if _is_original_admin(app) else api
                 })
@@ -187,9 +196,13 @@ def _check(app, api, role, auth=True):
                 request_token = request.headers.get('X-Token')
                 user_db_tokens = user['customData']['tokens']
                 roles = user.get('customData', {}).get('roles') or []
-                return (
-                    admin_client,
+                yield (
+                    client,
                     request_token in user_db_tokens,
                     role is None or 'admin' in roles or role in roles
                 )
-    return None, False, False
+            else:
+                yield (None, False, False)
+    else:
+        yield (None, False, False)
+    client.close()

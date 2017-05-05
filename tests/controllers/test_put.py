@@ -2,13 +2,13 @@
 import json
 import unittest
 
-from . import MoviesTest
+from .. import MoviesTest
 
 
-class TestPatchResource(MoviesTest):
+class TestPutResource(MoviesTest):
 
-    def test_patch_invalid_id(self):
-        response = self.app.patch(
+    def test_put_invalid_id(self):
+        response = self.app.put(
             '/%s/movies/a1' % self.api,
             headers=self.headers,
             data=json.dumps({}),
@@ -17,8 +17,8 @@ class TestPatchResource(MoviesTest):
         self.assertEqual(response.status_code, 404)
         self.assertDictContainsSubset({'message': u'Resource "a1" is invalid'}, json.loads(response.data))
 
-    def test_patch_not_found_id(self):
-        response = self.app.patch(
+    def test_put_not_found_id(self):
+        response = self.app.put(
             '/%s/actors/%s' % (self.api, self.movies[0]['id']),
             headers=self.headers,
             data=json.dumps({}),
@@ -31,12 +31,12 @@ class TestPatchResource(MoviesTest):
             response_json
         )
 
-    def test_patch(self):
+    def test_put(self):
         self.movies[0]['country'] = 'USA'
-        response = self.app.patch(
+        response = self.app.put(
             '/%s/movies/%s' % (self.api, self.movies[0]['id']),
             headers=self.headers,
-            data=json.dumps({'country': 'USA'}),
+            data=json.dumps(self.movies[0]),
             content_type='application/json'
         )
         self.assertEqual(response.status_code, 204)
@@ -44,12 +44,12 @@ class TestPatchResource(MoviesTest):
         response_json = json.loads(response.data)
         self.assertEqual(self.movies[0], response_json)
 
-    def test_patch_nested(self):
+    def test_put_nested(self):
         self.movies[1]['country'] = 'USA'
-        response = self.app.patch(
+        response = self.app.put(
             '/%s/actors/%s/movies/%s' % (self.api, self.actors[1]['id'], self.movies[1]['id']),
             headers=self.headers,
-            data=json.dumps({'country': 'USA'}),
+            data=json.dumps(self.movies[1]),
             content_type='application/json'
         )
         self.assertEqual(response.status_code, 204)
@@ -58,12 +58,16 @@ class TestPatchResource(MoviesTest):
         self.assertEqual(self.movies[1], response_json)
 
 
-class TestPatchCollection(MoviesTest):
+class TestPutCollection(MoviesTest):
 
-    def test_patch(self):
-        response = self.app.patch('/%s/movies' % self.api, headers=self.headers)
+    def test_put(self):
+        response = self.app.put('/%s/movies' % self.api, headers=self.headers)
         self.assertEqual(response.status_code, 404)
         self.assertDictContainsSubset(
-            {'message': u'Not supported collection update'},
+            {'message': u'Not supported collection update/replace'},
             json.loads(response.data)
         )
+
+
+if __name__ == '__main__':
+    unittest.main()

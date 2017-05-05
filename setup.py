@@ -6,7 +6,7 @@ version = '0.0.1'
 setup(
     name='auto_api',
     version=version,
-    description="Automatic API REST",
+    description='Automatic API REST',
     long_description="""
 AutoApi was created to not wasting time to developing an API REST at the
 project start. Has an authentication system to provided secure data based on
@@ -31,14 +31,18 @@ MongoDB 3.X.
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        "click==6.7",
-        "Flask==0.10.1",
-        "flask-cors==2.0.0",
-        "pymongo==2.8",
-        "pyOpenSSL==17.0.0"
+        'click==6.7',
+        'Flask==0.12.1',
+        'flask-cors==2.0.0',
+        'pymongo==3.4.0',
+        'pyOpenSSL==17.0.0'
     ],
-    tests_require=['nose'],
-    test_suite="tests",
+    tests_require=[
+        'nose',
+        'mock',
+        'mongobox==0.1.6'
+    ],
+    test_suite='tests',
     entry_points="""
     # -*- Entry points: -*-
     """,
