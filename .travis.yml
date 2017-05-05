@@ -9,7 +9,6 @@ install:
   - pip install coverage coveralls mock mongobox nose
   - python setup.py develop
 script:
-  - ./run_tests.py -v -s --with-coverage --cover-package=auto_api
-  # - coverage run --source auto_api run_tests.py -s --with-coverage --cover-package=auto_api
+  - ./run_tests.py -vs --with-coverage --cover-package=auto_api
 after_script:
   - coveralls
