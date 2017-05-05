@@ -64,7 +64,7 @@ class TestPutCollection(MoviesTest):
         response = self.app.put('/%s/movies' % self.api, headers=self.headers)
         self.assertEqual(response.status_code, 405)
         self.assertDictContainsSubset(
-            {'message': u'Collections do not support replace operation'},
+            {'message': u'Collections do not support this operation'},
             json.loads(response.data)
         )
 

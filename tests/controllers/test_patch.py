@@ -14,7 +14,7 @@ class TestPatchResource(MoviesTest):
             data=json.dumps({}),
             content_type='application/json'
         )
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 409)
         self.assertDictContainsSubset({'message': u'Resource "a1" is invalid'}, json.loads(response.data))
 
     def test_patch_not_found_id(self):
@@ -62,9 +62,9 @@ class TestPatchCollection(MoviesTest):
 
     def test_patch(self):
         response = self.app.patch('/%s/movies' % self.api, headers=self.headers)
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 405)
         self.assertDictContainsSubset(
-            {'message': u'Not supported collection update'},
+            {'message': u'Collections do not support this operation'},
             json.loads(response.data)
         )
 
