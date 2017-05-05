@@ -17,11 +17,11 @@ def response(data, headers=None, status=200):
     )
 
 
-def message(message, headers=None, status=200):
-    return response({'message': message}, headers=headers, status=status)
+def message(text, headers=None, status=200):
+    return response({'message': text}, headers=headers, status=status)
 
 
-def invalid():
+def unauthenticated():
     return message(u'Invalid email/password/api', status=400)
 
 
@@ -31,3 +31,15 @@ def unauthorized(api):
 
 def unlogged(api):
     return message(u'You must be logged in "%s" api' % api, status=401)
+
+
+def not_found(text):
+    return message(text, status=404)
+
+
+def not_allow(text):
+    return message(text, status=405)
+
+
+def invalid(text):
+    return message(text, status=409)

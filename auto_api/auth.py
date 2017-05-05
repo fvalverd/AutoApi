@@ -8,7 +8,7 @@ import uuid
 from flask import request
 import OpenSSL
 
-from .messages import invalid, message, ok_no_data, response, \
+from .messages import message, ok_no_data, response, unauthenticated, \
     unauthorized, unlogged
 from .mongodb import admin, ADMIN_KEYS, get_client, OperationFailure, \
     PyMongoError
@@ -33,14 +33,14 @@ def login(app):
                 data={'email': params.get('email'), 'token': token},
                 headers={'X-Email': params.get('email'), 'X-Token': token}
             )
-    return invalid()
+    return unauthenticated()
 
 
 def logout(app):
     params = request.json or request.form.to_dict()
     if _logout_and_remove_token(app, params.get('api')):
         return ok_no_data()
-    return invalid()
+    return unauthenticated()
 
 
 def user(mongo_client):
@@ -54,7 +54,7 @@ def user(mongo_client):
             }
         )
         return ok_no_data()
-    return invalid()
+    return unauthenticated()
 
 
 def password(app, mongo_client):
@@ -67,7 +67,7 @@ def password(app, mongo_client):
             if admin or email == request.headers['X-Email']:
                 mongo_client[api].add_user(email, password)
                 return ok_no_data()
-    return invalid()
+    return unauthenticated()
 
 
 def roles(app, mongo_client):
@@ -79,7 +79,7 @@ def roles(app, mongo_client):
                 'db': params.get('api')
             })
         except OperationFailure:
-            return invalid()
+            return unauthenticated()
         else:
             if result.get('users'):
                 user = result['users'][0]
@@ -96,7 +96,7 @@ def roles(app, mongo_client):
                     customData=customData
                 )
                 return ok_no_data()
-    return invalid()
+    return unauthenticated()
 
 
 def secure(app, role=None, api=None, auth=False):
