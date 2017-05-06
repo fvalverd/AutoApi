@@ -2,7 +2,7 @@
 from contextlib import contextmanager
 
 from pymongo import MongoClient
-from pymongo.errors import PyMongoError
+from pymongo.errors import PyMongoError, OperationFailure
 
 
 MONGO_KEYS = {'host': 'MONGO_HOST', 'port': 'MONGO_PORT'}
@@ -27,3 +27,16 @@ def admin(app, client=None, logout=True):
     yield client
     if logout:
         client.admin.logout()
+
+
+def _is_original_admin(app, user):
+    return user == app.config[ADMIN_KEYS['name']]
+
+
+def get_info(app, api, client, user):
+    try:
+        db = 'admin' if _is_original_admin(app, user) else api
+        result = client[api].command('usersInfo', {'user': user, 'db': db})
+        return ((result and result.get('users')) or [{}])[0].get('customData')
+    except OperationFailure:
+        return None

@@ -10,7 +10,7 @@ from pymongo.errors import OperationFailure, PyMongoError
 
 from .messages import ok_no_data, response, unauthenticated, \
     unauthorized, unlogged
-from .mongodb import admin, ADMIN_KEYS, get_client
+from .mongodb import admin, ADMIN_KEYS, get_client, get_info
 from .utils import get_api_from_params
 
 
@@ -172,10 +172,6 @@ def _create_token():
     return str(uuid.UUID(bytes=OpenSSL.rand.bytes(16)))
 
 
-def _is_original_admin(app):
-    return request.headers.get('X-Email') == app.config[ADMIN_KEYS['name']]
-
-
 @contextmanager
 def check(app, api, role, auth=False):
     client = get_client(app)
@@ -183,23 +179,12 @@ def check(app, api, role, auth=False):
         yield (client, True, True)
     elif request.headers.get('X-Email') and request.headers.get('X-Token'):
         with admin(app, client=client, logout=False) as client:
-            try:
-                result = client[api].command('usersInfo', {
-                    'user': request.headers['X-Email'],
-                    'db': 'admin' if _is_original_admin(app) else api
-                })
-            except OperationFailure:
-                pass
-            user = (result.get('users') or [{}])[0]
-            if user.get('customData', {}).get('tokens'):
-                request_token = request.headers.get('X-Token')
-                user_db_tokens = user['customData']['tokens']
-                roles = user.get('customData', {}).get('roles') or []
-                yield (
-                    client,
-                    request_token in user_db_tokens,
-                    role is None or 'admin' in roles or role in roles
-                )
+            info = get_info(app, api, client, request.headers.get('X-Email'))
+            if info is not None and info.get('tokens'):
+                roles = info.get('roles') or []
+                authenticated = request.headers['X-Token'] in info['tokens']
+                authorized = role is None or 'admin' in roles or role in roles
+                yield (client, authenticated, authorized)
             else:
                 yield (None, False, False)
     else:
