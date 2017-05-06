@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from contextlib import contextmanager
+import uuid
 
+import OpenSSL
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError, OperationFailure
 
@@ -40,3 +42,35 @@ def get_info(app, api, client, user):
         return ((result and result.get('users')) or [{}])[0].get('customData')
     except OperationFailure:
         return None
+
+
+def _create_token():
+    return str(uuid.UUID(bytes=OpenSSL.rand.bytes(16)))
+
+
+def login_and_get_token(app, api, user, password):
+    client = get_client(app)
+    api = 'admin' if app.config[ADMIN_KEYS['name']] == user else api
+    try:
+        client[api].authenticate(user, password)
+        client[api].logout()
+    except PyMongoError:
+        return None
+    token = _create_token()
+    with admin(app, client=client) as client:
+        result = client[api].command('usersInfo', {'user': user, 'db': api})
+        customData = result.get('users')[0].get('customData')
+        customData['tokens'] = customData.get('tokens', []) + [token]
+        client[api].command('updateUser', user, customData=customData)
+        return token
+
+
+def logout_and_remove_token(app, api, user, token):
+    api = 'admin' if app.config[ADMIN_KEYS['name']] == user else api
+    with admin(app) as client:
+        result = client[api].command('usersInfo', {'user': user, 'db': api})
+        customData = result.get('users')[0].get('customData')
+        if token in customData.get('tokens', []):
+            customData['tokens'].remove(token)
+            client[api].command('updateUser', user, customData=customData)
+            return True

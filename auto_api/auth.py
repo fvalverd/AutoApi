@@ -2,15 +2,14 @@
 from contextlib import contextmanager
 from functools import wraps
 import inspect
-import uuid
 
 from flask import request
-import OpenSSL
-from pymongo.errors import OperationFailure, PyMongoError
+from pymongo.errors import OperationFailure
 
 from .messages import ok_no_data, response, unauthenticated, \
     unauthorized, unlogged
-from .mongodb import admin, ADMIN_KEYS, get_client, get_info
+from .mongodb import admin, get_client, get_info, \
+    login_and_get_token, logout_and_remove_token
 from .utils import get_api_from_params
 
 
@@ -20,24 +19,22 @@ DEFAULT_ROLES = ['read']
 
 def login(app):
     params = request.json or request.form.to_dict()
-    if params.get('email') and params.get('api'):
-        token = _login_and_get_token(
-            app,
-            params['api'],
-            email=params['email'],
-            password=params.get('password')
-        )
+    if params.get('email') and params.get('api') and params.get('password'):
+        api, user, password = params['api'], params['email'], params['password']
+        token = login_and_get_token(app, api, user, password)
         if token is not None:
             return response(
-                data={'email': params.get('email'), 'token': token},
-                headers={'X-Email': params.get('email'), 'X-Token': token}
+                data={'email': user, 'token': token},
+                headers={'X-Email': user, 'X-Token': token}
             )
     return unauthenticated()
 
 
 def logout(app):
     params = request.json or request.form.to_dict()
-    if _logout_and_remove_token(app, params.get('api')):
+    user = request.headers.get('X-Email')
+    token = request.headers.get('X-Token')
+    if logout_and_remove_token(app, params.get('api'), user, token):
         return ok_no_data()
     return unauthenticated()
 
@@ -123,46 +120,6 @@ def secure(app, role=None, api=None, auth=False):
                 return controller(*args, **kwargs)
         return wrapped
     return wrapper
-
-
-# TODO: next functions are utils
-
-def _login_and_get_token(app, api, email, password):
-    api = 'admin' if app.config[ADMIN_KEYS['name']] == email else api
-    client = get_client(app)
-    try:
-        client[api].authenticate(email, password)
-        client[api].logout()
-    except PyMongoError:
-        pass
-    else:
-        token = _create_token()
-        with admin(app, client=client) as client:
-            result = client[api].command(
-                'usersInfo',
-                {'user': email, 'db': api}
-            )
-            customData = result.get('users')[0].get('customData')
-            customData['tokens'] = customData.get('tokens', []) + [token]
-            client[api].command('updateUser', email, customData=customData)
-            return token
-
-
-def _logout_and_remove_token(app, api):
-    token = request.headers.get('X-Token')
-    user = request.headers.get('X-Email')
-    api = 'admin' if app.config[ADMIN_KEYS['name']] == user else api
-    with admin(app) as client:
-        result = client[api].command('usersInfo', {'user': user, 'db': api})
-        customData = result.get('users')[0].get('customData')
-        if token in customData.get('tokens', []):
-            customData['tokens'].remove(token)
-            client[api].command('updateUser', user, customData=customData)
-            return True
-
-
-def _create_token():
-    return str(uuid.UUID(bytes=OpenSSL.rand.bytes(16)))
 
 
 @contextmanager
