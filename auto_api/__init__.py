@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
 from flask import Flask
+from flask.views import http_method_funcs
 
 from .auth import login, logout, password, roles, secure, user
 from .config import config
+from .controllers import invalid_operation
 from .controllers.get import get
 from .controllers.post import post
 from .controllers.delete import delete
 from .controllers.put import put
 from .controllers.patch import patch
+
+
+METHODS = list(http_method_funcs)
 
 
 class AutoApi(object):
@@ -20,21 +25,19 @@ class AutoApi(object):
         self.load_methods()
 
     def route(
-        self, force_no_auth=False, method='POST',
-        path='/<api>/<path:path>', role=None
+        self, force_no_auth=False, method='POST', path='/<api>/<path:path>',
+        role=None, _all=False
     ):
         def wrapper(controller):
-            return self.app.route(path, methods=[method])(
+            return self.app.route(path, methods=_all and METHODS or [method])(
                 secure(
-                    self.app,
-                    role=role,
-                    auth=self.auth and not force_no_auth
+                    self.app, role=role, auth=self.auth and not force_no_auth
                 )(controller)
             )
         return wrapper
 
     def load_auth(self):
-        # TODO: add invalid operation for /not_valid_op
+        self.route(path='/<api>', force_no_auth=True)(invalid_operation)
         if self.auth:
             self.route(path='/login', force_no_auth=True)(login)
             self.route(path='/logout')(logout)

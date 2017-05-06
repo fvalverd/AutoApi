@@ -104,15 +104,15 @@ Related info:
 ### Run api server
 ```
 cp server.cfg.default server.cfg
-./run_server
+./run_server.py
 ```
 
 ### Test api server
 ```
-cp tests.cfg.default tests.cfg
-./run_test -s
+./run_tests.py -s
 ```
 
-#**TODO**
+#**NEXT**
 - ~~GET options (filter, sort and skip)~~
+- ~~Without authentication~~
 - Custom roles

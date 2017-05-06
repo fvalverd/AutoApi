@@ -10,10 +10,8 @@ def ok_no_data():
 
 def response(data, headers=None, status=200):
     return Response(
-        headers=headers,
-        mimetype="application/json",
-        response=json.dumps(data),
-        status=status
+        headers=headers, mimetype="application/json",
+        response=json.dumps(data), status=status
     )
 
 

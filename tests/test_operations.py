@@ -2,7 +2,7 @@
 import json
 import unittest
 
-from . import BaseAuthTest, MoviesTest
+from . import BaseTest, BaseAuthTest, MoviesTest
 
 
 class TestLogin(BaseAuthTest):
@@ -422,6 +422,35 @@ class TestChangePassword(BaseAuthTest):
 
         response = self.app.post('/login', data=data)
         self.assertEqual(response.status_code, 200)
+
+
+class TestInvalidOperation(BaseTest):
+
+    def test_invalid_operation(self):
+        response = self.app.post('/asdf')
+        response_json = json.loads(response.data or '{}')
+        self.assertEqual(response.status_code, 400)
+        self.assertDictEqual(
+            response_json,
+            {'message': u'This is not a valid operation'}
+        )
+
+
+class TestInvalidOperationAuth(BaseAuthTest):
+
+    def test_invalid_operation(self):
+        data = {'email': self.user, 'password': self.password, 'api': self.api}
+        response = self.app.post('/login', data=data)
+        self.assertEqual(response.status_code, 200)
+        headers = self.response_to_headers(response)
+
+        response = self.app.post('/asdf', headers=headers)
+        response_json = json.loads(response.data or '{}')
+        self.assertEqual(response.status_code, 400)
+        self.assertDictEqual(
+            response_json,
+            {'message': u'This is not a valid operation'}
+        )
 
 
 if __name__ == '__main__':
