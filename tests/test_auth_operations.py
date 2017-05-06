@@ -20,14 +20,14 @@ class TestLogin(BaseAuthTest):
     def test_incomplete_login(self):
         data = {'password': self.password}
         response = self.app.post('/login', data=data)
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 401)
         response_json = json.loads(response.data or '{}')
         self.assertDictContainsSubset({'message': u'Invalid email/password/api'}, response_json)
 
     def test_login_bad_pass(self):
         data = {'email': self.user, 'password': 'bad_pass', 'api': self.api}
         response = self.app.post('/login', data=data)
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 401)
         response_json = json.loads(response.data or '{}')
         self.assertDictContainsSubset({'message': u'Invalid email/password/api'}, response_json)
 

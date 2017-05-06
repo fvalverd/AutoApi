@@ -4,17 +4,12 @@ from functools import wraps
 import inspect
 
 from flask import request
-from pymongo.errors import OperationFailure
 
-from .messages import ok_no_data, response, unauthenticated, \
-    unauthorized, unlogged
-from .mongodb import admin, get_client, get_info, \
-    login_and_get_token, logout_and_remove_token
+from .messages import bad_request, forbidden, ok_no_data, response, \
+    unauthenticated, unauthorized, unlogged
+from .mongodb import add_user, admin, get_client, get_info, \
+    login_and_get_token, logout_and_remove_token, update_roles
 from .utils import get_api_from_params
-
-
-BUILT_IN_ROLES = ['read', 'update', 'create', 'delete', 'admin']
-DEFAULT_ROLES = ['read']
 
 
 def login(app):
@@ -42,15 +37,10 @@ def logout(app):
 def user(mongo_client):
     params = request.json
     if params.get('email') and params.get('password') and params.get('api'):
-        mongo_client[params.get('api')].add_user(
-            params.get('email'),
-            params.get('password'),
-            customData={
-                'roles': params.get('roles') or DEFAULT_ROLES
-            }
-        )
+        api, user, password = params['api'], params['email'], params['password']
+        add_user(mongo_client, api, user, password, params.get('roles'))
         return ok_no_data()
-    return unauthenticated()
+    return bad_request(u"Missing parameters")
 
 
 def password(app, mongo_client):
@@ -69,55 +59,34 @@ def password(app, mongo_client):
 def roles(app, mongo_client):
     params = request.json
     if params.get('email') and params.get('api') and params.get('roles'):
-        try:
-            result = mongo_client[params.get('api')].command('usersInfo', {
-                'user': params.get('email'),
-                'db': params.get('api')
-            })
-        except OperationFailure:
-            return unauthenticated()
-        else:
-            if result.get('users'):
-                user = result['users'][0]
-                customData = user.get('customData', {})
-                roles = customData.get('roles') or []
-                customData['roles'] = [
-                    role
-                    for role in roles + params['roles'].keys()
-                    if params['roles'].get(role, True)
-                ]
-                mongo_client[params.get('api')].command(
-                    'updateUser',
-                    params.get('email'),
-                    customData=customData
-                )
-                return ok_no_data()
-    return unauthenticated()
+        if update_roles(
+            app, params['api'], mongo_client, params['email'], params['roles']
+        ):
+            return ok_no_data()
+        return forbidden(u"User does not exists")
+    return bad_request(u"Missing parameters")
+
+
+def inject(app, client, controller, kwargs):
+    argspec = inspect.getargspec(controller)[0]
+    if 'app' in argspec:
+        kwargs['app'] = app
+    if 'mongo_client' in argspec:
+        kwargs['mongo_client'] = client
+    return kwargs
 
 
 def secure(app, role=None, api=None, auth=False):
     def wrapper(controller):
         @wraps(controller)
-        def wrapped(*args, **kwargs):
-            _api = api or kwargs.get('api') or get_api_from_params(request)
-
-            # Check authentication and authorization
+        def wrapped(*args, **kw):
+            _api = api or kw.get('api') or get_api_from_params(request)
             with check(app, _api, role, auth) as (client, logged, authorized):
-                # Return error messages
                 if not logged:
                     return unlogged(_api)
-                if not authorized:
+                elif not authorized:
                     return unauthorized(_api)
-
-                # Inject requested parameters
-                argspec = inspect.getargspec(controller)[0]
-                if 'app' in argspec:
-                    kwargs['app'] = app
-                if 'mongo_client' in argspec:
-                    kwargs['mongo_client'] = client
-
-                # Apply original controller
-                return controller(*args, **kwargs)
+                return controller(*args, **inject(app, client, controller, kw))
         return wrapped
     return wrapper
 

@@ -7,6 +7,9 @@ from pymongo import MongoClient
 from pymongo.errors import PyMongoError, OperationFailure
 
 
+BUILT_IN_ROLES = ['read', 'update', 'create', 'delete', 'admin']
+DEFAULT_ROLES = ['read']
+
 MONGO_KEYS = {'host': 'MONGO_HOST', 'port': 'MONGO_PORT'}
 ADMIN_KEYS = {'name': 'MONGO_ADMIN', 'password': 'MONGO_ADMIN_PASS'}
 
@@ -44,8 +47,26 @@ def get_info(app, api, client, user):
         return None
 
 
+def add_user(client, api, user, password, roles):
+    client[api].add_user(
+        user, password, customData={'roles': roles or DEFAULT_ROLES}
+    )
+
+
 def _create_token():
     return str(uuid.UUID(bytes=OpenSSL.rand.bytes(16)))
+
+
+def update_roles(app, api, client, user, roles):
+    info = get_info(app, api, client, user)
+    if info is not None:
+        info['roles'] = [
+            role
+            for role in (info.get('roles') or []) + roles.keys()
+            if roles.get(role, True) and role in BUILT_IN_ROLES
+        ]
+        client[api].command('updateUser', user, customData=info)
+        return True
 
 
 def login_and_get_token(app, api, user, password):

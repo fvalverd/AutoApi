@@ -21,8 +21,16 @@ def message(text, headers=None, status=200):
     return response({'message': text}, headers=headers, status=status)
 
 
+def bad_request(text):
+    return message(text, status=400)
+
+
+def forbidden(text):
+    return message(text, status=403)
+
+
 def unauthenticated():
-    return message(u'Invalid email/password/api', status=400)
+    return message(u'Invalid email/password/api', status=401)
 
 
 def unauthorized(api):
