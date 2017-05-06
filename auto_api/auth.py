@@ -150,21 +150,14 @@ def _login_and_get_token(app, api, email, password):
 
 def _logout_and_remove_token(app, api):
     token = request.headers.get('X-Token')
-    email = request.headers.get('X-Email')
-    api = 'admin' if app.config[ADMIN_KEYS['name']] == email else api
+    user = request.headers.get('X-Email')
+    api = 'admin' if app.config[ADMIN_KEYS['name']] == user else api
     with admin(app) as client:
-        result = client[api].command(
-            'usersInfo',
-            {'user': email, 'db': api}
-        )
+        result = client[api].command('usersInfo', {'user': user, 'db': api})
         customData = result.get('users')[0].get('customData')
         if token in customData.get('tokens', []):
             customData['tokens'].remove(token)
-            client[api].command(
-                'updateUser',
-                request.headers.get('X-Email'),
-                customData=customData
-            )
+            client[api].command('updateUser', user, customData=customData)
             return True
 
 
@@ -174,19 +167,13 @@ def _create_token():
 
 @contextmanager
 def check(app, api, role, auth=False):
-    client = get_client(app)
-    if not auth:
-        yield (client, True, True)
-    elif request.headers.get('X-Email') and request.headers.get('X-Token'):
+    client, authenticated, authorized = get_client(app), not auth, not auth
+    if auth and 'X-Email' in request.headers and 'X-Token' in request.headers:
         with admin(app, client=client, logout=False) as client:
-            info = get_info(app, api, client, request.headers.get('X-Email'))
+            info = get_info(app, api, client, request.headers['X-Email'])
             if info is not None and info.get('tokens'):
                 roles = info.get('roles') or []
                 authenticated = request.headers['X-Token'] in info['tokens']
                 authorized = role is None or 'admin' in roles or role in roles
-                yield (client, authenticated, authorized)
-            else:
-                yield (None, False, False)
-    else:
-        yield (None, False, False)
+    yield (client, authenticated, authorized)
     client.close()
