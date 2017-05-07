@@ -6,10 +6,7 @@ from auto_api import AutoApi
 
 
 # Set autoapi config
-PATH = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)),
-    'server.cfg'
-)
+PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'server.cfg')
 
 
 @click.command()

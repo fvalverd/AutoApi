@@ -424,7 +424,16 @@ class TestChangePassword(BaseAuthTest):
         self.assertEqual(response.status_code, 200)
 
 
-class TestInvalidOperation(BaseTest):
+class TestOtherOperations(BaseTest):
+
+    def test_welcome(self):
+        for verb in [self.app.get, self.app.post, self.app.delete, self.app.put, self.app.patch]:
+            response = verb('/')
+            self.assertEqual(response.status_code, 200)
+            self.assertDictEqual(
+                json.loads(response.data or '{}'),
+                json.loads(self.autoapi.welcome().data)
+            )
 
     def test_invalid_operation(self):
         response = self.app.post('/asdf')
@@ -436,9 +445,27 @@ class TestInvalidOperation(BaseTest):
         )
 
 
-class TestInvalidOperationAuth(BaseAuthTest):
+class TestOtherOperationsAuth(BaseAuthTest):
+
+    def test_welcome(self):
+        for verb in [self.app.get, self.app.post, self.app.delete, self.app.put, self.app.patch]:
+            response = verb('/')
+            self.assertEqual(response.status_code, 200)
+            self.assertDictEqual(
+                json.loads(response.data or '{}'),
+                json.loads(self.autoapi.welcome().data)
+            )
 
     def test_invalid_operation(self):
+        response = self.app.post('/asdf')
+        response_json = json.loads(response.data or '{}')
+        self.assertEqual(response.status_code, 400)
+        self.assertDictEqual(
+            response_json,
+            {'message': u'This is not a valid operation'}
+        )
+
+    def test_invalid_operation_auth(self):
         data = {'email': self.user, 'password': self.password, 'api': self.api}
         response = self.app.post('/login', data=data)
         self.assertEqual(response.status_code, 200)

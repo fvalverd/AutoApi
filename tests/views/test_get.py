@@ -19,7 +19,7 @@ class TestGetResource(MoviesTest):
 
     def test_get_invalid_id(self):
         response = self.app.get('/%s/movies/a1' % self.api, headers=self.headers)
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 409)
         response_json = json.loads(response.data or '{}')
         self.assertDictContainsSubset({'message': u'Resource "a1" is invalid'}, response_json)
 
@@ -115,7 +115,7 @@ class TestGetCollectionParameters(MoviesTest):
         response = self.app.get(
             '/%s/movies' % self.api,
             headers=self.headers,
-            query_string={'_limit': '2'}
+            query_string={'_limit': 2}
         )
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.data)
@@ -125,7 +125,7 @@ class TestGetCollectionParameters(MoviesTest):
         response = self.app.get(
             '/%s/movies' % self.api,
             headers=self.headers,
-            query_string={'_skip': '1'}
+            query_string={'_skip': 1}
         )
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.data)

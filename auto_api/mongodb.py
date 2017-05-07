@@ -23,15 +23,15 @@ def get_client(app):
 
 
 @contextmanager
-def admin(app, client=None, logout=True):
-    client = client or get_client(app)
+def admin(app, client=None):
+    _client = client or get_client(app)
     try:
-        client.admin.authenticate(**get_values(app.config, ADMIN_KEYS))
+        _client.admin.authenticate(**get_values(app.config, ADMIN_KEYS))
     except PyMongoError:
         pass
-    yield client
-    if logout:
-        client.admin.logout()
+    yield _client
+    if client is None:
+        _client.admin.logout()
 
 
 def _is_original_admin(app, user):
@@ -69,8 +69,7 @@ def update_roles(app, api, client, user, roles):
         return True
 
 
-def login_and_get_token(app, api, user, password):
-    client = get_client(app)
+def get_token(app, api, client, user, password):
     api = 'admin' if app.config[ADMIN_KEYS['name']] == user else api
     try:
         client[api].authenticate(user, password)
@@ -86,7 +85,7 @@ def login_and_get_token(app, api, user, password):
         return token
 
 
-def logout_and_remove_token(app, api, user, token):
+def remove_token(app, api, user, token):
     api = 'admin' if app.config[ADMIN_KEYS['name']] == user else api
     with admin(app) as client:
         result = client[api].command('usersInfo', {'user': user, 'db': api})

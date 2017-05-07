@@ -10,21 +10,14 @@ from .mongodb import admin, get_values, ADMIN_KEYS, MONGO_KEYS
 AUTOAPI_SETTINGS_VAR = 'AUTOAPI_SETTINGS'
 
 
-def config(
+def config_autoapi(
     autoapi, cors=True, logging_level=logging.WARN,
     path=None, force_port=None
 ):
-    # loggin
     _config_logging(autoapi, level=logging_level)
-
-    # cross domain
     if cors:
         CORS(autoapi.app, resources={r'/*': {'origins': '*'}})
-
-    # config file
     _read_config(autoapi, path, force_port=force_port)
-
-    # admin user
     if autoapi.auth:
         _config_admin_user(autoapi)
 
@@ -53,7 +46,7 @@ def _read_config(autoapi, path, force_port=None):
         raise AutoApiMissingAdminConfig('Check your configuration !')
 
 
-def _config_admin_user(autoapi, client=None):
+def _config_admin_user(autoapi):
     with admin(autoapi.app) as client:
         # Ensure that admin user exists
         client.admin.add_user(
@@ -63,8 +56,7 @@ def _config_admin_user(autoapi, client=None):
         )
 
         # Ensure that admin has privileges
-        with admin(autoapi.app, client=client, logout=False) as client:
-            # admin read & write
+        with admin(autoapi.app, client=client) as client:
             client.admin.command(
                 'grantRolesToUser',
                 autoapi.app.config[ADMIN_KEYS['name']],

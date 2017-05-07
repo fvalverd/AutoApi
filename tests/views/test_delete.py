@@ -13,7 +13,7 @@ class TestDeleteResource(MoviesTest):
 
     def test_delete_invalid_id(self):
         response = self.app.delete('/%s/movies/a1' % self.api, headers=self.headers)
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 409)
         self.assertDictContainsSubset({'message': u'Resource "a1" is invalid'}, json.loads(response.data))
 
     def test_delete_not_found_id(self):

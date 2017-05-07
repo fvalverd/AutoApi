@@ -2,17 +2,11 @@
 from flask import Flask
 from flask.views import http_method_funcs
 
-from .auth import login, logout, password, roles, secure, user
-from .config import config
-from .controllers import invalid_operation
-from .controllers.get import get
-from .controllers.post import post
-from .controllers.delete import delete
-from .controllers.put import put
-from .controllers.patch import patch
-
-
-METHODS = list(http_method_funcs)
+from .auth import secure
+from .config import config_autoapi
+from .messages import message
+from .operations import invalid_operation, login, logout, password, roles, user
+from .views import get, post, delete, put, patch
 
 
 class AutoApi(object):
@@ -20,37 +14,66 @@ class AutoApi(object):
     def __init__(self, auth=False, cors=True, config_path=None, port=None):
         self.auth = auth
         self.app = Flask(self.__class__.__name__)
-        config(self, cors=cors, path=config_path, force_port=port)
-        self.load_auth()
-        self.load_methods()
+        config_autoapi(self, cors=cors, path=config_path, force_port=port)
+        self.prefix = 'AutoApi'
+        self.add('/', lambda: self.welcome(), no_auth=True, all_methods=True)
+        self.load_operations()
+        self.load_api_rest()
+        self.load_more_routes()
+        self.prefix = self.__class__.__name__
 
-    def route(
-        self, force_no_auth=False, method='POST', path='/<api>/<path:path>',
-        role=None, _all=False
+    def welcome(self):
+        return message(u"Welcome to AutoApi.")
+
+    def add(
+        self, path, view, no_auth=False, method='POST',
+        role=None, all_methods=False
     ):
-        def wrapper(controller):
-            return self.app.route(path, methods=_all and METHODS or [method])(
-                secure(
-                    self.app, role=role, auth=self.auth and not force_no_auth
-                )(controller)
-            )
+        """" Bind path with view on AutoApi """
+
+        self.app.add_url_rule(
+            rule=path,
+            endpoint=u"{}.{}".format(self.prefix, view.__name__),
+            view_func=secure(
+                self.app, view, role=role, auth=self.auth and not no_auth
+            ),
+            methods=all_methods and list(http_method_funcs) or [method],
+        )
+
+    def route(self, path, **kwargs):
+        """ Decorator to bind path with view on AutoApi """
+
+        def wrapper(view):
+            self.add(path, view, **kwargs)
         return wrapper
 
-    def load_auth(self):
-        self.route(path='/<api>', force_no_auth=True)(invalid_operation)
-        if self.auth:
-            self.route(path='/login', force_no_auth=True)(login)
-            self.route(path='/logout')(logout)
-            self.route(path='/user', role='admin')(user)
-            self.route(path='/password')(password)
-            self.route(path='/roles', role='admin')(roles)
+    def load_operations(self):
+        """ Bind operations related with Authentication & Authorization """
 
-    def load_methods(self):
-        self.route(method='GET', role='read')(get)
-        self.route(method='POST', role='create')(post)
-        self.route(method='DELETE', role='delete')(delete)
-        self.route(method='PUT', role='update')(put)
-        self.route(method='PATCH', role='update')(patch)
+        self.add('/<api>', invalid_operation, no_auth=True, all_methods=True)
+        if self.auth:
+            self.add('/login', login, no_auth=True)
+            self.add('/logout', logout)
+            self.add('/user', user, role='admin')
+            self.add('/password', password)
+            self.add('/roles', roles, role='admin')
+
+    def load_api_rest(self):
+        """ Bind automatic API REST for AutoApi """
+
+        path = '/<api>/<path:path>'
+        self.add(path, get, method='GET', role='read')
+        self.add(path, post, method='POST', role='create')
+        self.add(path, delete, method='DELETE', role='delete')
+        self.add(path, put, method='PUT', role='update')
+        self.add(path, patch, method='PATCH', role='update')
+
+    def load_more_routes(self):
+        """ Implement this method to add more routes """
+
+        pass
 
     def run(self, host='0.0.0.0', port=8686, reloader=True, debug=True):
+        """ Start AutoApi web service """
+
         self.app.run(host=host, port=port, use_reloader=reloader, debug=debug)

@@ -4,7 +4,7 @@ import json
 
 from auto_api import AutoApi
 from auto_api.mongodb import admin
-from auto_api.utils import format_result
+from auto_api.utils import fix_id
 
 
 MONGO_PORT = 27018
@@ -66,7 +66,6 @@ class BaseAuthTest(BaseTest):
         super(BaseAuthTest, cls).setUpClass(auth=True)
 
 
-# TODO: RequestMixin to add credentials and content-type HEADERS
 class LoggedTest(BaseAuthTest):
 
     @classmethod
@@ -119,13 +118,13 @@ class MoviesTest(LoggedTest):
         cls._clean_movies_and_actors()
         with admin(cls.app.application) as client:
             client[cls.api].actors.insert(cls.actors)
-            cls.actors = [format_result(actor) for actor in cls.actors]
+            cls.actors = [fix_id(actor) for actor in cls.actors]
             for movie in cls.movies:
                 movie.update({
                     'actors': cls.actors[cls.movies.index(movie)]['id']
                 })
             client[cls.api].movies.insert(cls.movies)
-            cls.movies = [format_result(movie) for movie in cls.movies]
+            cls.movies = [fix_id(movie) for movie in cls.movies]
 
     @classmethod
     def tearDownClass(cls):

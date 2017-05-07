@@ -4,7 +4,7 @@ import json
 from flask import Response
 
 
-def ok_no_data():
+def ok():
     return Response(status=204)
 
 

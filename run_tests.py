@@ -31,35 +31,40 @@ def run():
         db_path=DB_PATH_AUTH, port=MONGO_AUTH_PORT
     )
 
+    status, statusA = False, False
     try:
         print "Starting mongo servers:"
 
         # start server
-        print " - server without auth...",
+        print " - server...",
         sys.stdout.flush()
         mongobox.start()
+        status = True
         print "OK"
 
         # start auth server
-        print " - server with auth...",
+        print " - server auth...",
         sys.stdout.flush()
         mongoboxA.start()
         print "OK\n"
+        statusA = True
         sys.stdout.flush()
 
         # run tests with nose
         main()
     finally:
         # stop servers
-        print "\n\nStoping mongo servers:"
-        print " - server without auth...",
-        sys.stdout.flush()
-        mongobox.stop()
-        print "OK"
-        print " - server with auth...",
-        sys.stdout.flush()
-        mongoboxA.stop()
-        print "OK"
+        if status:
+            print "\n\nStoping mongo servers:"
+            print " - server...",
+            sys.stdout.flush()
+            mongobox.stop()
+            print "OK"
+            if statusA:
+                print " - server auth...",
+                sys.stdout.flush()
+                mongoboxA.stop()
+                print "OK"
 
 
 if __name__ == '__main__':
