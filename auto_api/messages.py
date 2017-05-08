@@ -1,17 +1,28 @@
 # -*- coding: utf-8 -*-
+import datetime
 import json
 
+from bson.objectid import ObjectId
+
+
 from flask import Response
+
+
+def _autoapi_dumps(obj):
+    if isinstance(obj, ObjectId):
+        return str(obj)
+    elif isinstance(obj, datetime.datetime):
+        return obj.isoformat()
 
 
 def ok():
     return Response(status=204)
 
 
-def response(data, headers=None, status=200):
+def response(data, headers=None, status=200, default_dumps=_autoapi_dumps):
     return Response(
         headers=headers, mimetype="application/json",
-        response=json.dumps(data), status=status
+        response=json.dumps(data, default=default_dumps), status=status
     )
 
 

@@ -20,11 +20,10 @@ def _get_resource(api, client, collection, resource_id, conditions):
         conditions.update({'_id': ObjectId(resource_id)})
     except InvalidId:
         raise Message(invalid(u'Resource "%s" is invalid' % resource_id))
-    else:
-        item = client[api][collection].find_one(conditions)
-        if item is None:
-            raise Message(not_found(u'Resource "%s" not found' % resource_id))
-        return fix_id(item)
+    item = client[api][collection].find_one(conditions)
+    if item is None:
+        raise Message(not_found(u'Resource "%s" not found' % resource_id))
+    return fix_id(item)
 
 
 def get(api, path, client):
@@ -41,11 +40,11 @@ def get(api, path, client):
 def delete(api, path, client):
     params = request.json or request.form.to_dict()
     resource_id, collection, conditions = split_path(path=path, params=params)
-    try:
-        if resource_id is not None:
+    if resource_id is not None:
+        try:
             conditions.update({'_id': ObjectId(resource_id)})
-    except InvalidId:
-        return invalid(u'Resource "%s" is invalid' % resource_id)
+        except InvalidId:
+            return invalid(u'Resource "%s" is invalid' % resource_id)
     result = client[api][collection].remove(conditions)
     if result['n'] == 0 and resource_id is not None:
         return not_found(u'Resource "%s" not found' % resource_id)
