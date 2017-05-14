@@ -2,6 +2,10 @@
 import json
 import unittest
 
+import mock
+from pymongo.collection import Collection
+from pymongo.results import InsertOneResult
+
 from .. import MoviesTest
 
 
@@ -20,6 +24,23 @@ class TestPost(MoviesTest):
             {'message': u'Not supported resource creation'},
             response_json
         )
+
+    @mock.patch.object(Collection, 'insert_one')
+    def test_failed_mongo_insert(self, mocked_insert_one):
+            mocked_insert_one.return_value = InsertOneResult(None, False)
+
+            response = self.app.post(
+                '/%s/movies' % self.api,
+                headers=self.headers,
+                data=json.dumps({}),
+                content_type='application/json'
+            )
+            self.assertEqual(response.status_code, 500)
+            response_json = json.loads(response.data or '{}')
+            self.assertDictContainsSubset(
+                {'message': u'The resource can not be created'},
+                response_json
+            )
 
     def test_post_empty(self):
         movie = {}

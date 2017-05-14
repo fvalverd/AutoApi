@@ -55,8 +55,7 @@ def post(api, path, client):
     params = request.json or request.form.to_dict()
     resource_id, collection, conditions = split_path(path=path, params=params)
     if resource_id is None:
-        resource_id = client[api][collection].insert(conditions)
-        if resource_id is not None:
+        if client[api][collection].insert_one(conditions).acknowledged:
             conditions['id'] = str(conditions.pop('_id'))
             return response(conditions, status=201, headers={
                 'Location': '/%s/%s/%s' % (api, collection, conditions['id']),
