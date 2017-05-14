@@ -76,4 +76,4 @@ class AutoApi(object):
     def run(self, host='0.0.0.0', port=8686, reloader=True, debug=True):
         """ Start AutoApi web service """
 
-        self.app.run(host=host, port=port, use_reloader=reloader, debug=debug)
+        self.app.run(host=host, port=port, use_reloader=reloader, debug=debug, threaded=True)
