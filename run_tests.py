@@ -5,8 +5,8 @@ import sys
 from nose import main
 from mongobox import MongoBox
 
-from auto_api.config import AUTOAPI_SETTINGS_VAR
-from tests import MONGO_PORT, MONGO_AUTH_PORT
+
+MONGO_PORT, MONGO_AUTH_PORT = 27018, 27019
 
 
 def run():
@@ -21,7 +21,7 @@ def run():
     DB_PATH_AUTH = os.path.join(TMP_DIR, 'data_auth')
 
     # set autoapi environment variable for config
-    os.environ[AUTOAPI_SETTINGS_VAR] = os.path.join(
+    os.environ['AUTOAPI_SETTINGS'] = os.path.join(
         CURRENT_DIR, 'tests.cfg.default'
     )
 
