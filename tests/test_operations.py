@@ -27,6 +27,16 @@ class TestLogin(BaseAuthTest):
             response_json
         )
 
+    def test_missing_parameters(self):
+        data = {'password': self.password, 'api': self.api}
+        response = self.app.post('/login', data=data)
+        self.assertEqual(response.status_code, 400)
+        response_json = json.loads(response.data or '{}')
+        self.assertDictContainsSubset(
+            {'message': u'Missing parameters'},
+            response_json
+        )
+
     def test_login_bad_pass(self):
         data = {'email': self.user, 'password': 'bad_pass', 'api': self.api}
         response = self.app.post('/login', data=data)
@@ -56,7 +66,7 @@ class TestLogout(BaseAuthTest):
         response = self.app.post('/logout', headers=headers, data={'api': 'api_tests'})
         self.assertEqual(response.status_code, 204)
 
-    def test_incomplete_logout(self):
+    def test_missing_api(self):
         data = {'email': self.user, 'password': self.password, 'api': self.api}
         response = self.app.post('/login', data=data)
         self.assertEqual(response.status_code, 200)
@@ -311,6 +321,24 @@ class TestEditRoles(MoviesTest):
         response = cls.app.post('/login', data=cls.read_user)
         cls.read_user_header = cls.response_to_headers(response)
 
+    def test_missing_parameters(self):
+        response = self.app.post(
+            '/roles',
+            headers=self.headers,
+            data=json.dumps({'email': self.read_user['email'], 'api': self.api}),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_exist_user(self):
+        response = self.app.post(
+            '/roles',
+            headers=self.headers,
+            data=json.dumps({'email': 'fake_user', 'api': self.api, 'roles': ['read']}),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 403)
+
     def test_edit_read_role(self):
         for read, status_code in [(False, 403), (True, 200)]:
             response = self.app.post(
@@ -420,6 +448,20 @@ class TestChangePassword(BaseAuthTest):
 
         response = self.app.post('/login', data=data)
         self.assertEqual(response.status_code, 200)
+
+    def test_missing_parameters(self):
+        data = {'email': self._user, 'password': self._pass, 'api': self.api}
+        response = self.app.post('/login', data=data)
+        headers = self.response_to_headers(response)
+
+        del data['password']
+        response = self.app.post('/password', data=data, headers=headers)
+        self.assertEqual(response.status_code, 400)
+        response_json = json.loads(response.data or '{}')
+        self.assertDictEqual(
+            response_json,
+            {'message': u'Missing parameters'}
+        )
 
     def test_admin_change_user_password(self):
         data = {'email': self._user, 'password': u'new_pass', 'api': self.api}

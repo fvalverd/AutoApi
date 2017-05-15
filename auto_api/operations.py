@@ -25,10 +25,8 @@ def login(app, client):
 def logout(app):
     params = request.json or request.form.to_dict()
     user, token = [request.headers.get(key) for key in ('X-Email', 'X-Token')]
-    if user and token and params.get('api'):
-        remove_token(app, params['api'], user, token)
-        return ok()
-    return bad_request(u"Missing parameters")
+    remove_token(app, params['api'], user, token)
+    return ok()
 
 
 def user(client):
