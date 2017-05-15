@@ -95,6 +95,23 @@ class TestLogout(BaseAuthTest):
 
 class TestCreateUser(MoviesTest):
 
+    def test_missing_parameters(self):
+        test_data = {'email': u'fvalverd', 'api': self.api, 'roles': ['read']}
+
+        admin_headers = self.get_admin_headers()
+        response = self.app.post(
+            '/user',
+            headers=admin_headers,
+            data=json.dumps(test_data),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 400)
+        response_json = json.loads(response.data or '{}')
+        self.assertDictContainsSubset(
+            {'message': u'Missing parameters'},
+            response_json
+        )
+
     def test_read_role(self):
         test_data = {'email': u'fvalverd', 'password': u'pass', 'api': self.api, 'roles': ['read']}
 
