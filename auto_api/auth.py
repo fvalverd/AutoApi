@@ -8,7 +8,7 @@ from flask import request
 from .exceptions import Message
 from .messages import unauthorized, unlogged
 from .mongodb import admin, get_client, get_info
-from .utils import get_api_from_params
+from .utils import get_api
 
 
 def _inject(app, client, view, kwargs):
@@ -20,11 +20,11 @@ def _inject(app, client, view, kwargs):
     return kwargs
 
 
-def secure(app, view, role=None, api=None, auth=False):
+def secure(app, view, role=None, api=None, auth=False, without_api=False):
     @wraps(view)
     def wrapper(*args, **kwargs):
-        _api = api or kwargs.get('api') or get_api_from_params(request)
         try:
+            _api = api or kwargs.get('api') or get_api(without_api=without_api)
             with check(app, _api, role, auth) as (client, _, __):
                 return view(*args, **_inject(app, client, view, kwargs))
         except Message as m:

@@ -6,7 +6,7 @@ from bson.errors import InvalidId
 from flask import request
 
 from .exceptions import Message
-from .messages import invalid, not_allow, not_found, ok
+from .messages import bad_request, invalid, not_allow, not_found, ok
 
 
 FILTERS = {'_limit': 10, '_regex': None, '_skip': 0, '_sort': '_id'}
@@ -35,9 +35,12 @@ def split_path(path='', params=None):
     return resource_id, collection, params
 
 
-def get_api_from_params(request):
+def get_api(without_api=False):
     params = request.json or request.form.to_dict()
-    return params.get('api')
+    api = params.get('api')
+    if api is not None or without_api:
+        return api
+    raise Message(bad_request(u'Missing "api" parameter'))
 
 
 @contextmanager

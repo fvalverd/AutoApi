@@ -15,19 +15,22 @@ class AutoApi(object):
         self.auth = auth
         self.app = Flask(self.__class__.__name__)
         config_autoapi(self, cors=cors, path=config_path, force_port=port)
+
+        # AutoApi routes
         self.prefix = 'AutoApi'
-        self.add('/', lambda: self.welcome(), no_auth=True, all_methods=True)
         self.load_operations()
         self.load_api_rest()
-        self.load_more_routes()
+
+        # Customize routes
         self.prefix = self.__class__.__name__
+        self.load_more_routes()
 
     def welcome(self):
         return message(u"Welcome to AutoApi.")
 
     def add(
         self, path, view, no_auth=False, method='POST',
-        role=None, all_methods=False
+        role=None, all_methods=False, without_api=False
     ):
         """" Bind path with view on AutoApi """
 
@@ -35,7 +38,8 @@ class AutoApi(object):
             rule=path,
             endpoint=u"{}.{}".format(self.prefix, view.__name__),
             view_func=secure(
-                self.app, view, role=role, auth=self.auth and not no_auth
+                self.app, view, role=role,
+                auth=self.auth and not no_auth, without_api=without_api
             ),
             methods=all_methods and list(http_method_funcs) or [method],
         )
@@ -50,7 +54,19 @@ class AutoApi(object):
     def load_operations(self):
         """ Bind operations related with Authentication & Authorization """
 
-        self.add('/<api>', invalid_operation, no_auth=True, all_methods=True)
+        # AutoApi welcome message
+        self.add(
+            '/', lambda: self.welcome(), no_auth=True,
+            all_methods=True, without_api=True
+        )
+
+        # Invalid operation message
+        self.add(
+            '/<api>', invalid_operation, no_auth=True,
+            all_methods=True, without_api=True
+        )
+
+        # AutoApi auth operations
         if self.auth:
             self.add('/login', login, no_auth=True)
             self.add('/logout', logout)
@@ -76,4 +92,7 @@ class AutoApi(object):
     def run(self, host='0.0.0.0', port=8686, reloader=True, debug=True):
         """ Start AutoApi web service """
 
-        self.app.run(host=host, port=port, use_reloader=reloader, debug=debug, threaded=True)
+        self.app.run(
+            host=host, port=port, use_reloader=reloader,
+            debug=debug, threaded=True
+        )

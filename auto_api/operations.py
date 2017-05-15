@@ -2,7 +2,7 @@
 from flask import request
 
 from .auth import check
-from .messages import bad_request, forbidden, ok, response, unauthenticated
+from .messages import bad_request, forbidden, ok, response
 from .mongodb import add_user, get_token, remove_token, update_roles
 
 
@@ -15,21 +15,20 @@ def login(app, client):
     if params.get('email') and params.get('api') and params.get('password'):
         api, user, _pass = params['api'], params['email'], params['password']
         token = get_token(app, api, client, user, _pass)
-        if token is not None:
-            return response(
-                data={'email': user, 'token': token},
-                headers={'X-Email': user, 'X-Token': token}
-            )
-    return unauthenticated()
+        return response(
+            data={'email': user, 'token': token},
+            headers={'X-Email': user, 'X-Token': token}
+        )
+    return bad_request(u"Missing parameters")
 
 
 def logout(app):
     params = request.json or request.form.to_dict()
-    user = request.headers.get('X-Email')
-    token = request.headers.get('X-Token')
-    if remove_token(app, params.get('api'), user, token):
+    user, token = [request.headers.get(key) for key in ('X-Email', 'X-Token')]
+    if user and token and params.get('api'):
+        remove_token(app, params['api'], user, token)
         return ok()
-    return unauthenticated()
+    return bad_request(u"Missing parameters")
 
 
 def user(client):
@@ -49,7 +48,7 @@ def password(app, client):
             if _admin or user == request.headers['X-Email']:
                 client[params['api']].add_user(user, password)
                 return ok()
-    return unauthenticated()
+    return bad_request(u"Missing parameters")
 
 
 def roles(app, client):

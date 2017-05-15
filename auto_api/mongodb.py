@@ -6,6 +6,9 @@ import OpenSSL
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError, OperationFailure
 
+from .exceptions import Message
+from .messages import unauthenticated
+
 
 BUILT_IN_ROLES = ['read', 'update', 'create', 'delete', 'admin']
 DEFAULT_ROLES = ['read']
@@ -75,7 +78,7 @@ def get_token(app, api, client, user, password):
         client[api].authenticate(user, password)
         client[api].logout()
     except PyMongoError:
-        return None
+        raise Message(unauthenticated())
     token = _create_token()
     with admin(app, client=client) as client:
         result = client[api].command('usersInfo', {'user': user, 'db': api})
@@ -93,4 +96,3 @@ def remove_token(app, api, user, token):
         if token in customData.get('tokens', []):
             customData['tokens'].remove(token)
             client[api].command('updateUser', user, customData=customData)
-            return True

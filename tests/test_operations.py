@@ -20,16 +20,22 @@ class TestLogin(BaseAuthTest):
     def test_incomplete_login(self):
         data = {'password': self.password}
         response = self.app.post('/login', data=data)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 400)
         response_json = json.loads(response.data or '{}')
-        self.assertDictContainsSubset({'message': u'Invalid email/password/api'}, response_json)
+        self.assertDictContainsSubset(
+            {'message': u'Missing "api" parameter'},
+            response_json
+        )
 
     def test_login_bad_pass(self):
         data = {'email': self.user, 'password': 'bad_pass', 'api': self.api}
         response = self.app.post('/login', data=data)
         self.assertEqual(response.status_code, 401)
         response_json = json.loads(response.data or '{}')
-        self.assertDictContainsSubset({'message': u'Invalid email/password/api'}, response_json)
+        self.assertDictContainsSubset(
+            {'message': u'Invalid email/password/api'},
+            response_json
+        )
 
     def test_login(self):
         data = {'email': self.user, 'password': self.password, 'api': self.api}
@@ -50,17 +56,17 @@ class TestLogout(BaseAuthTest):
         response = self.app.post('/logout', headers=headers, data={'api': 'api_tests'})
         self.assertEqual(response.status_code, 204)
 
-    def test_login_but_unauthorized_in_other_api(self):
+    def test_incomplete_logout(self):
         data = {'email': self.user, 'password': self.password, 'api': self.api}
         response = self.app.post('/login', data=data)
         self.assertEqual(response.status_code, 200)
         headers = self.response_to_headers(response)
-        response = self.app.get('/bad_api/movies', headers=headers)
-        self.assertEqual(response.status_code, 401)
+        response = self.app.post('/logout', headers=headers)
+        self.assertEqual(response.status_code, 400)
         response_json = json.loads(response.data or '{}')
         self.assertDictEqual(
             response_json,
-            {'message': u'You must be logged in "%s" api' % u'bad_api'}
+            {'message': u'Missing "api" parameter'}
         )
 
     def test_logout_but_unauthorized_in_other_api(self):
