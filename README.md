@@ -10,26 +10,27 @@ The goal of AutoApi is avoid developing an API REST at the start of a project, m
 
 Assuming you have MongoDB server running on the default port without authentication, AutoApi starts as:
 
-```
-./run_server.py
+```shell
+$ ./run_server.py
 ```
 
 A personal agenda is a good example to show how AutoApi works, we will use the *example* API to insert and retrieve items from *agenda* collection.
 
 ### Insert
+<pre>
+<b>POST</b> /example/agenda
+<b>Content-Type</b>: application/json
 
-```
-POST /example/agenda
-
-Content-Type: application/json
-
-{"name": "user", email": "user@email.com", "phone": "+123 456-789", "address": "123 Street"}
-```
+{
+  "name": "user",
+  "email": "user@email.com",
+  "phone": "+123 456-789",
+  "address": "123 Street"
+}
+</pre>
 
 The response will be:
 ```
-Content-Type: application/json
-
 {"id": "591a79400000000000000000"}
 ```
 
@@ -37,27 +38,29 @@ Where the value of *id* will always be a [MongoDB ObjectId](https://docs.mongodb
 
 
 ### Retrieve
-
-```
-GET /example/agenda
-
-Content-Type: application/json
-```
+<pre>
+<b>GET</b> /example/agenda
+<b>Content-Type</b>: application/json
+</pre>
 
 The response will be:
-```
-Content-Type: application/json
-
+<pre>
 [
-  {"name": "user", email": "user@email.com", "phone": "+123 456-789", "address": "123 Street"},
+  {
+    "name": "user",
+    "email": "user@email.com",
+    "phone": "+123 456-789",
+    "address": "123 Street"
+  },
   ...
 ]
-```
+</pre>
 
 
 ## **How it works ?**
 
 TODO: based on MongoDB
+AutoApi its based on MongoDB
 
 ### Structure
 
@@ -66,56 +69,65 @@ TODO: describe /api/collection/resource and /operation
 
 ## **How to use it ?**
 
-### Authentication
+### Authentication & Authorization
 
 TODO: mention that authentication is optional
 
-#### Login and logout
+#### Authentication
 
 Each API has their own users, so users have to logged specifying the API in the request:
 
-```
-POST /login
+<pre>
+<b>POST</b> /login
+<b>Content-Type</b>: application/json
 
-Content-Type: application/json
-
-{"email": "user@email.com", "password": "pass", "api": "example"}
-```
+{
+  "api": "example",
+  "email": "user@email.com",
+  "password": "pass"
+}
+</pre>
 
 The response will contain a session token in the headers and body:
 
-```
-Content-Type: application/json
-X-Email: user@email.com
-X-Token: 123456
+<pre>
+<b>X-Email</b>: user@email.com
+<b>X-Token</b>: 123456
 
-{"email": "user@email.com", "token": "123456"}
-```
+{
+  "email": "user@email.com",
+  "token": "123456"
+}
+</pre>
 
 To logout, users have to specify the API too:
-```
-POST /logout
 
-Content-Type: application/json
-X-Email: user@email.com
-X-Token: 123456
+<pre>
+<b>POST</b> /logout
+<b>Content-Type</b>: application/json
+<b>X-Email</b>: user@email.com
+<b>X-Token</b>: 123456
 
 {"api": "example"}
-```
+</pre>
 
 #### Users
 
 **Only admin users** can create more users specifying the API and CRUD roles:
 
-```
-POST /user
+<pre>
+<b>POST</b> /user
+<b>Content-Type</b>: application/json
+<b>X-Email</b>: ADMIN_USER
+<b>X-Token</b>: ADMIN_USER_TOKEN
 
-Content-Type: application/json
-X-Email: ADMIN_USER
-X-Token: ADMIN_USER_TOKEN
-
-{"email": "other_user@email.com", "password": "pass", "api": "example", "roles": ["read", "update"]}
-```
+{
+  "email": "other_user@email.com", 
+  "password": "pass", 
+  "api": "example", 
+  "roles": ["read", "update"]
+}
+</pre>
 
 The last request create the user *other_user@email.com* and authorize him to *read* and *update* the *example* API without any API creation request.
 
@@ -142,26 +154,22 @@ TODO: no additional operations on API collection
 Is important to remember if AutoApi's authentication is enabled, only logged users can CRUD API's resources, but it depends on the user's roles for authorization.
 A read operation will be like this:
 
-```
-GET /example/actors/actor_1/movies
-
-Content-Type: application/json
-X-Email: user@email.com
-X-Token: USER_TOKEN
-```
+<pre>
+<b>GET</b> /example/actors/actor_1/movies
+<b>X-Email</b>: user@email.com
+<b>X-Token</b>: USER_TOKEN
+</pre>
 
 The response will contain all *movies*'s resources where actor *actor_1* is present in the *example* API:
 
-```
-Content-Type: application/json
-
+<pre>
 [
   {"name": "Movie 1", "year": "2014"},
   {"name": "Movie 2", "year": "2013"},
   ...
   {"name": "Movie n", "year": "2000"},
 ]
-```
+</pre>
 
 
 More info about REST:
@@ -175,18 +183,18 @@ More info about REST:
 
 #### OpenSSL Ubuntu dependencies
 
-```
-sudo apt-get install libffi-dev libssl-dev
-```
+<pre>
+$ sudo apt-get install libffi-dev libssl-dev
+</pre>
 
 #### Python dependencies
 
 I strongly recommend you to use [virtualenv](https://virtualenv.pypa.io) and [virtualenvwrapper](https://virtualenvwrapper.readthedocs.io).
 
-```
-workon autoapi
-python setup.py develop
-```
+<pre>
+$ workon autoapi
+$ python setup.py develop
+</pre>
 
 #### MongoDB
 
@@ -207,14 +215,14 @@ Related info:
 To run AutoApi server there is a script called *run_server.py*.
 If you want to try AutoApi with authentication, you must run the script with the flag *-a* (*--auth*) and create a config file based on *server.cfg.default*.
 
-```
-./run_server.py [[-a] -f server.cfg]
-```
+<pre>
+$ ./run_server.py [[-a] -f server.cfg]
+</pre>
 
 ## Testing AutoApi
 
 To run AutoApi test there is a script called *run_tests.py*. This script will automatically start and stop two MongoDB servers (one with authentication enabled) only for testing purpose.
 
-```
-./run_tests.py [nose-parameters]
-```
+<pre>
+$ ./run_tests.py [nose-parameters]
+</pre>
