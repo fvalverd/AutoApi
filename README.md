@@ -1,24 +1,79 @@
-AutoApi
-=======
+# AutoApi
+
 [![Build Status](https://travis-ci.org/fvalverd/AutoApi.svg?branch=master)](https://travis-ci.org/fvalverd/AutoApi) [![Coverage Status](https://coveralls.io/repos/fvalverd/AutoApi/badge.svg)](https://coveralls.io/r/fvalverd/AutoApi) [![Code Climate](https://codeclimate.com/github/fvalverd/AutoApi/badges/gpa.svg)](https://codeclimate.com/github/fvalverd/AutoApi)
 
 The goal of AutoApi is avoid developing an API REST at the start of a project, making a prototype easier than usual. AutoApi also has an authentication system and multiple APIs are supported.
 
+## **Quickstart**
 
-# **Quickstart**
-TODO: add quickstart
+### Start AutoApi
 
-# **How it works ?**
-## Structure ##
+Assuming you have MongoDB server running on the default port without authentication, AutoApi starts as:
+
+```
+./run_server.py
+```
+
+A personal agenda is a good example to show how AutoApi works, we will use the *example* API to insert and retrieve items from *agenda* collection.
+
+### Insert
+
+```
+POST /example/agenda
+
+Content-Type: application/json
+
+{"name": "user", email": "user@email.com", "phone": "+123 456-789", "address": "123 Street"}
+```
+
+The response will be:
+```
+Content-Type: application/json
+
+{"id": "591a79400000000000000000"}
+```
+
+Where the value of *id* will always be a [MongoDB ObjectId](https://docs.mongodb.com/manual/reference/method/ObjectId).
+
+
+### Retrieve
+
+```
+GET /example/agenda
+
+Content-Type: application/json
+```
+
+The response will be:
+```
+Content-Type: application/json
+
+[
+  {"name": "user", email": "user@email.com", "phone": "+123 456-789", "address": "123 Street"},
+  ...
+]
+```
+
+
+## **How it works ?**
+
+TODO: based on MongoDB
+
+### Structure
+
 TODO: describe /api/collection/resource and /operation
+
+
+## **How to use it ?**
+
+### Authentication
+
 TODO: mention that authentication is optional
 
-# **How to use it ?**
+#### Login and logout
 
-## Authentication ##
-
-### Login and logout ###
 Each API has their own users, so users have to logged specifying the API in the request:
+
 ```
 POST /login
 
@@ -26,7 +81,9 @@ Content-Type: application/json
 
 {"email": "user@email.com", "password": "pass", "api": "example"}
 ```
+
 The response will contain a session token in the headers and body:
+
 ```
 Content-Type: application/json
 X-Email: user@email.com
@@ -46,8 +103,10 @@ X-Token: 123456
 {"api": "example"}
 ```
 
-### Users ###
+#### Users
+
 **Only admin users** can create more users specifying the API and CRUD roles:
+
 ```
 POST /user
 
@@ -57,26 +116,32 @@ X-Token: ADMIN_USER_TOKEN
 
 {"email": "other_user@email.com", "password": "pass", "api": "example", "roles": ["read", "update"]}
 ```
+
 The last request create the user *other_user@email.com* and authorize him to *read* and *update* the *example* API without any API creation request.
 
-### Authorization ###
+#### Authorization
+
 TODO: edit roles
 TODO: edit password
 
 
-## Collections and Resources ##
+### Collections and Resources
 
-### API ###
+#### API
+
 AutoApi doesn't need to create an API to use it.
 TODO: no additional operations on API
 
-### API collection ###
+#### API collection
+
 AutoApi doesn't need to create a collection to use it.
 TODO: no additional operations on API collection
 
-### CRUD collection's resource ###
+#### CRUD collection's resource
+
 Is important to remember if AutoApi's authentication is enabled, only logged users can CRUD API's resources, but it depends on the user's roles for authorization.
 A read operation will be like this:
+
 ```
 GET /example/actors/actor_1/movies
 
@@ -106,23 +171,28 @@ More info about REST:
 
 
 
-# **Dependencies and configuration**
+## **Dependencies and configuration**
 
-### OpenSSL Ubuntu dependencies
+#### OpenSSL Ubuntu dependencies
+
 ```
 sudo apt-get install libffi-dev libssl-dev
 ```
 
-### Python dependencies
+#### Python dependencies
+
 I strongly recommend you to use [virtualenv](https://virtualenv.pypa.io) and [virtualenvwrapper](https://virtualenvwrapper.readthedocs.io).
+
 ```
 workon autoapi
 python setup.py develop
 ```
 
-### MongoDB
+#### MongoDB
+
 TODO: no additional configuration
 TODO: only if authentication is enabled...
+
 AutoApi use MongoDB 3.X users, so you have to set *auth=true* in your *mongodb.cfg* or run *mongod* with the flag *--auth*. If MongoDB was started with the authentication flag but doesn't have an admin user, AutoApi will try to create him using the given config file (see Develop section and Run AutoApi details).
 
 Related info:
@@ -132,15 +202,19 @@ Related info:
 - http://docs.mongodb.org/manual/tutorial/add-user-administrator
 
 
-# Running AutoApi
+## Running AutoApi
+
 To run AutoApi server there is a script called *run_server.py*.
 If you want to try AutoApi with authentication, you must run the script with the flag *-a* (*--auth*) and create a config file based on *server.cfg.default*.
+
 ```
 ./run_server.py [[-a] -f server.cfg]
 ```
 
-# Testing AutoApi
+## Testing AutoApi
+
 To run AutoApi test there is a script called *run_tests.py*. This script will automatically start and stop two MongoDB servers (one with authentication enabled) only for testing purpose.
+
 ```
 ./run_tests.py [nose-parameters]
 ```
