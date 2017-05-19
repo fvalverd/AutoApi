@@ -89,7 +89,7 @@ class AutoApi(object):
 
         pass
 
-    def run(self, host='0.0.0.0', port=8686, reloader=True, debug=True):
+    def run(self, host='localhost', port=8686, reloader=True, debug=True):
         """ Start AutoApi web service """
 
         self.app.run(
