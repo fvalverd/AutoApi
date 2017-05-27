@@ -11,12 +11,13 @@ Assuming you have MongoDB server running in *localhost* on the default port with
 ```shell
 $ ./run_server.py
   * Running on http://localhost:8686/ (Press CTRL+C to quit)
+  ...
 ```
 
 A personal agenda is a good example to show how AutoApi works. We will use the *example* API to insert and retrieve items from *agenda* collection.
 
 ### Insert
-In order to add an item in the agenda, the following HTTP request shows how to do it:
+To add an item in the agenda, the following HTTP request shows how to do it:
 <pre>
 <b>POST</b> http://localhost:8686/example/agenda
 <b>Content-Type</b>: application/json
@@ -28,7 +29,7 @@ In order to add an item in the agenda, the following HTTP request shows how to d
   "address": "123 Street"
 }
 </pre>
-It's important to add **/example** (API name) before the REST path **/agenda**, because that is the way AutoApi identifies the API.
+It's important to add **/example** (API name) before the REST path **/agenda**, because that is the way AutoApi identifies them.
 The response will contain the id of the created item as:
 ```
 {"id": "591a79400000000000000000"}
@@ -38,14 +39,13 @@ Where the value of *id* will always be a [MongoDB ObjectId](https://docs.mongodb
 
 
 ### Retrieve
-To get the previous inserted item in the agenda, is required to know the *id* of the item. The previous response show the *id* is *591a79400000000000000000*, so the item can be retrieve making the following HTTP request:
+To get the previous inserted item in the agenda, is required to know the *id* of the item. The previous response show the *id* is *591a79400000000000000000* so the item can be retrieve making the following HTTP request:
 
 <pre>
 <b>GET</b> http://localhost:8686/example/agenda/591a79400000000000000000
 </pre>
-In the same way as the insert operation, the API name and the REST path are required, in this case the path is **/agenda/591a79400000000000000000**.
-
-The response will contain the initial inserted data and the assigned *id*:
+In the same way as the insert operation, the API name and the REST path are required, in this case the path is **/agenda/591a79400000000000000000**
+The response will contain the initial inserted data and the AutoApi assigned *id*:
 <pre>
 {
   "id": "591a79400000000000000000",
