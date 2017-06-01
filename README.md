@@ -85,8 +85,13 @@ AutoApi its based on MongoDB
 TODO: describe /api/collection/resource and /operation
 
 ### Configuration file
-TODO: configuration file
+As AutoApi uses MongoDB to store the data, it is necessary to know the location of the database, by default AutoApi will try to connect to the default connection of MongoDB (*localhost*, *27017*) unless a configuration file is given.
 
+The configuration file stores the configuration for the MongoDB connection (including the authentication credentials), there is a template on this repository that show the syntax and the options, the template is called *server.cfg.default*.
+
+AutoApi can receive a configuration file using two methods, one is defining an environment variable with the name **AUTOAPI_SETTINGS** where the value is the file path. The other way is passing the parameter **config_path** to the constructor of AutoApi object with the file path.
+
+If you are going to use the given script to run AutoApi, you can give [the configuration file as a parameter with the flag *-f*](#running-autoapi), that script uses one of the previous options.
 
 ## **AutoApi features**
 
