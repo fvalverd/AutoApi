@@ -44,8 +44,7 @@ To get the previous inserted item in the agenda, is required to know the *id* of
 <pre>
 <b>GET</b> http://localhost:8686/example/agenda/591a79400000000000000000
 </pre>
-In the same way as the insert operation, the API name and the REST path are required, in this case the path is **/agenda/591a79400000000000000000**
-The response will contain the initial inserted data and the AutoApi assigned *id*:
+In the same way as the insert operation, the API name and the REST path are required, in this case the path is **/agenda/591a79400000000000000000**. The response will contain the initial inserted data and the AutoApi assigned *id*:
 <pre>
 {
   "id": "591a79400000000000000000",
@@ -65,6 +64,7 @@ And the response will be:
 <pre>
 [
   {
+    "id": "591a79400000000000000000",
     "name": "user",
     "email": "user@email.com",
     "phone": "+123 456-789",
@@ -75,7 +75,7 @@ And the response will be:
 </pre>
 
 
-## **How it works ?**
+## **How AutoApi works ?**
 
 TODO: based on MongoDB
 AutoApi its based on MongoDB
@@ -84,12 +84,18 @@ AutoApi its based on MongoDB
 
 TODO: describe /api/collection/resource and /operation
 
+### Configuration file
+TODO: configuration file
 
-## **How to use it ?**
+
+## **AutoApi features**
 
 ### Authentication & Authorization
 
-TODO: mention that authentication is optional
+AutoApi authentication is optional, by default is not activated. To activate it is necessary:
+ - [MongoDB auth](#mongodb) activated
+ - [AutoApi configuration file](#configuration-file) filled
+ - [Run AutoApi server](running-autoapi) with --auth flag
 
 #### Authentication
 
@@ -129,7 +135,7 @@ To logout, users have to specify the API too:
 {"api": "example"}
 </pre>
 
-#### Users
+#### Users and Authorization
 
 **Only admin users** can create more users specifying the API and CRUD roles:
 
@@ -147,48 +153,66 @@ To logout, users have to specify the API too:
 }
 </pre>
 
-The last request create the user *other_user@email.com* and authorize him to *read* and *update* the *example* API without any API creation request.
+The last request creates the user *other_user@email.com* and authorizes him to *read* and *update* the *example* API without any API creation request.
 
-#### Authorization
+Each user can update his own password and only an admin user can change other users password . The change can be done using the following request:
+<pre>
+<b>POST</b> /password
+<b>Content-Type</b>: application/json
+<b>X-Email</b>: USER
+<b>X-Token</b>: USER_TOKEN
 
-TODO: edit roles
-TODO: edit password
+{
+  "email": "other_user@email.com", 
+  "password": "new-pass", 
+  "api": "example"
+}
+</pre>
+
+It is important to note that the request needs the *email* parameter to select to user that will change the password.
+
+Finally, only an admin user can change the authorization roles for a particular user using the following request:
+<pre>
+<b>POST</b> /roles
+<b>Content-Type</b>: application/json
+<b>X-Email</b>: ADMIN_USER
+<b>X-Token</b>: ADMIN_USER_TOKEN
+
+{
+  "email": "other_user@email.com", 
+  "api": "example",
+  "roles": {
+    "update": false,
+    "delete": true
+  } 
+}
+</pre>
 
 
 ### Collections and Resources
 
 #### API
 
-AutoApi doesn't need to create an API to use it.
-TODO: no additional operations on API
+To use an API in AutoApi it is not necessary to create it, it is created on demand and there is no operations related for path **/api**.
 
 #### API collection
 
-AutoApi doesn't need to create a collection to use it.
-TODO: no additional operations on API collection
+To use and API collection in AutoApi it is not necessary to create it, it is also created on demand.
 
-#### CRUD collection's resource
+#### CRUD collection's resources
 
-Is important to remember if AutoApi's authentication is enabled, only logged users can CRUD API's resources, but it depends on the user's roles for authorization.
-A read operation will be like this:
+Is important to remember that if AutoApi's authentication is enabled then only logged users can CRUD API's resources, but it depends on the user's roles for authorization.
+
+A good API REST example is to show how to mark as a classic all the movies where *actor_1* appears.
 
 <pre>
-<b>GET</b> /example/actors/actor_1/movies
+<b>PATCH</b> /example/actors/actor_1/movies
+<b>Content-Type</b>: application/json
 <b>X-Email</b>: user@email.com
 <b>X-Token</b>: USER_TOKEN
+
+{"classic": true}
 </pre>
-
-The response will contain all *movies*'s resources where actor *actor_1* is present in the *example* API:
-
-<pre>
-[
-  {"name": "Movie 1", "year": "2014"},
-  {"name": "Movie 2", "year": "2013"},
-  ...
-  {"name": "Movie n", "year": "2000"},
-]
-</pre>
-
 
 More info about REST:
 
@@ -216,10 +240,7 @@ $ workon autoapi
 
 #### MongoDB
 
-TODO: no additional configuration
-TODO: only if authentication is enabled...
-
-AutoApi use MongoDB 3.X users, so you have to set *auth=true* in your *mongodb.cfg* or run *mongod* with the flag *--auth*. If MongoDB was started with the authentication flag but doesn't have an admin user, AutoApi will try to create him using the given config file (see Develop section and Run AutoApi details).
+AutoApi doesn't required modifications on MongoDB configuration to handle APIs, collectios or resources. But, if you want to activate [Authentication](#authentication) and [Authorization](#authorization), as AutoApi uses MongoDB users, it is necessary to set *auth=true* in your *mongodb.cfg* or run *mongod* with the flag *--auth*. If MongoDB was started with the authentication flag but doesn't have an admin user, AutoApi will try to create him using the given [configuration file](#configuration-file).
 
 Related info:
 - http://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/
@@ -231,7 +252,7 @@ Related info:
 ## Running AutoApi
 
 To run AutoApi server there is a script called *run_server.py*.
-If you want to try AutoApi with authentication, you must run the script with the flag *-a* (*--auth*) and create a config file based on *server.cfg.default*.
+If you want to try AutoApi with authentication, you must run the script with the flag *-a* (*--auth*) and create a configuration file based on *server.cfg.default*.
 
 <pre>
 $ ./run_server.py [[-a] -f server.cfg]
