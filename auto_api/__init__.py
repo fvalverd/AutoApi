@@ -29,8 +29,8 @@ class AutoApi(object):
         return message(u"Welcome to AutoApi.")
 
     def add(
-        self, path, view, no_auth=False, method='POST',
-        role=None, all_methods=False, without_api=False
+        self, path, view, api=None, no_auth=False,
+        method='POST', role=None, all_methods=False, without_api=False
     ):
         """" Bind path with view on AutoApi """
 
@@ -38,7 +38,7 @@ class AutoApi(object):
             rule=path,
             endpoint=u"{}.{}".format(self.prefix, view.__name__),
             view_func=secure(
-                self.app, view, role=role,
+                self.app, view, role=role, api=api,
                 auth=self.auth and not no_auth, without_api=without_api
             ),
             methods=all_methods and list(http_method_funcs) or [method],
