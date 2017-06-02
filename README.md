@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/fvalverd/AutoApi.svg?branch=master)](https://travis-ci.org/fvalverd/AutoApi) [![Coverage Status](https://coveralls.io/repos/fvalverd/AutoApi/badge.svg)](https://coveralls.io/r/fvalverd/AutoApi) [![Code Climate](https://codeclimate.com/github/fvalverd/AutoApi/badges/gpa.svg)](https://codeclimate.com/github/fvalverd/AutoApi)
 
-The goal of AutoApi is avoid developing an API REST at the start of a project, making a prototype easier than usual. AutoApi also has an authentication system and multiple APIs are supported.
+The goal of AutoApi is avoid developing an [API REST](https://en.wikipedia.org/wiki/Representational_state_transfer) at the start of a project, making a prototype easier than usual. AutoApi also has an authentication system and multiple APIs are supported.
 
 ## **Quickstart**
 
@@ -77,12 +77,9 @@ And the response will be:
 
 ## **How AutoApi works ?**
 
-TODO: based on MongoDB
-AutoApi its based on MongoDB
+AutoApi was develop on [Python](https://www.python.org/) using [Flask](http://flask.pocoo.org/) and [MongoDB](https://www.mongodb.com/), it was thought to support multiples API because AutoApi uses a database to represent an API, thus to differentiate between two APIs it is necessary to add the api name as a prefix in the URL. For instance, to retrieve all the movies from *imdb-copy* API it is necessary to do a **GET** to **/imdb-copy/movies**, but to retrieve the movies from **rottentomatoes-copy** API the URL is **/rottentomatoes-copy/movies**.
 
-### Structure
-
-TODO: describe /api/collection/resource and /operation
+Another important feature of AutoApi is the authentication, but authentication in this develop is at API level, so users can not be shared between APIs, the reason is AutoApi uses MongoDB users instead using a collection to store them, so they are related to a database and AutoApi consider a database as an API.
 
 ### Configuration file
 As AutoApi uses MongoDB to store the data, it is necessary to know the location of the database, by default AutoApi will try to connect to the default connection of MongoDB (*localhost*, *27017*) unless a configuration file is given.
@@ -208,7 +205,7 @@ To use and API collection in AutoApi it is not necessary to create it, it is als
 
 Is important to remember that if AutoApi's authentication is enabled then only logged users can CRUD API's resources, but it depends on the user's roles for authorization.
 
-A good API REST example is to show how to mark as a classic all the movies where *actor_1* appears.
+A good API REST example is show how to mark as a classic all the movies where *actor_1* appears.
 
 <pre>
 <b>PATCH</b> /example/actors/actor_1/movies
