@@ -4,12 +4,14 @@
 
 The goal of AutoApi is avoid developing an [API REST](https://en.wikipedia.org/wiki/Representational_state_transfer) at the start of a project, making a prototype easier than usual. AutoApi also has an authentication system and multiple APIs are supported.
 
-## **Quickstart**
+## Quickstart
 
 Assuming you have MongoDB server running in *localhost* on the default port without authentication, AutoApi starts as:
 
 ```shell
-$ ./run_server.py
+$ workon api
+(api) $ pip install auto_api
+(api) $ python -m auto_api
   * Running on http://localhost:8686/ (Press CTRL+C to quit)
   ...
 ```
@@ -39,7 +41,7 @@ Where the value of *id* will always be a [MongoDB ObjectId](https://docs.mongodb
 
 
 ### Retrieve
-To get the previous inserted item in the agenda, is required to know the *id* of the item. The previous response show the *id* is *591a79400000000000000000* so the item can be retrieve making the following HTTP request:
+To get the previous inserted item in the agenda, is required to know the *id* of the item. The previous response shows the *id* is *591a79400000000000000000*, so the item can be retrieve making the following HTTP request:
 
 <pre>
 <b>GET</b> http://localhost:8686/example/agenda/591a79400000000000000000
@@ -75,7 +77,7 @@ And the response will be:
 </pre>
 
 
-## **How AutoApi works ?**
+## How AutoApi works ?
 
 AutoApi was develop on [Python](https://www.python.org/) using [Flask](http://flask.pocoo.org/) and [MongoDB](https://www.mongodb.com/), it was thought to support multiples API because AutoApi uses a database to represent an API, thus to differentiate between two APIs it is necessary to add the api name as a prefix in the URL. For instance, to retrieve all the movies from *imdb-copy* API it is necessary to do a **GET** to **/imdb-copy/movies**, but to retrieve the movies from **rottentomatoes-copy** API the URL is **/rottentomatoes-copy/movies**.
 
@@ -88,7 +90,7 @@ The configuration file stores the configuration for the MongoDB connection (incl
 
 AutoApi can receive a configuration file using two methods, one is defining an environment variable with the name **AUTOAPI_SETTINGS** where the value is the file path. The other way is passing the parameter **config_path** to the constructor of AutoApi object with the file path.
 
-If you are going to use the given script to run AutoApi, you can give [the configuration file as a parameter with the flag *-f*](#running-autoapi), that script uses one of the previous options.
+If you are going to use the given script to run AutoApi, you can provide [the configuration file as a parameter with the flag *-f*](#running-autoapi), that script uses one of the previous options.
 
 ## **AutoApi features**
 
@@ -223,7 +225,7 @@ More info about REST:
 
 
 
-## **Dependencies and configuration**
+## Dependencies and configuration
 
 #### OpenSSL Ubuntu dependencies
 
@@ -253,11 +255,11 @@ Related info:
 
 ## Running AutoApi
 
-To run AutoApi server there is a script called *run_server.py*.
-If you want to try AutoApi with authentication, you must run the script with the flag *-a* (*--auth*) and create a configuration file based on *server.cfg.default*.
+To run AutoApi server, this module implements the *\_\_main\_\_.py* file to run from python. Remember that if you want to try AutoApi with authentication, you must provide the flags *-a* (or *--auth*) and *-f* (or *--config*) with the
+configuration file based on *server.cfg.default* (on this repository).
 
 <pre>
-$ ./run_server.py [[-a] -f server.cfg]
+(api) $ python -m auto_api [[-a] -f server.cfg]
 </pre>
 
 ## Testing AutoApi
