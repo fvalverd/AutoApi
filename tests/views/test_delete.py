@@ -29,7 +29,7 @@ class TestDeleteResource(MoviesTest):
         response = self.app.delete('/%s/movies/%s' % (self.api, self.movies[0]['id']), headers=self.headers)
         self.assertEqual(response.status_code, 204)
         response_json = self._count_test('movies', 2)
-        self.assertNotIn(self.movies[0], response_json)
+        self.assertNotIn(self.movies[0], response_json.get('items'))
 
     def test_delete_nested(self):
         response = self.app.delete(
@@ -38,7 +38,7 @@ class TestDeleteResource(MoviesTest):
         )
         self.assertEqual(response.status_code, 204)
         response_json = self._count_test('movies', 2)
-        self.assertNotIn(self.movies[0], response_json)
+        self.assertNotIn(self.movies[0], response_json.get('items'))
 
 
 class TestDeleteCollection(MoviesTest):
@@ -51,7 +51,7 @@ class TestDeleteCollection(MoviesTest):
         response = self.app.delete('/%s/movies' % self.api, headers=self.headers)
         self.assertEqual(response.status_code, 204)
         response_json = self._count_test('movies', 0)
-        self.assertEqual([], response_json)
+        self.assertEqual([], response_json.get('items'))
 
     def test_delete_nested(self):
         response = self.app.delete(
@@ -60,7 +60,7 @@ class TestDeleteCollection(MoviesTest):
         )
         self.assertEqual(response.status_code, 204)
         response_json = self._count_test('movies', 2)
-        self.assertNotIn(self.movies[0], response_json)
+        self.assertNotIn(self.movies[0], response_json.get('items'))
 
 
 if __name__ == '__main__':

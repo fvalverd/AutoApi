@@ -87,7 +87,7 @@ class LoggedTest(BaseAuthTest):
         response = self.app.get('/%s/%s' % (self.api, path), headers=self.headers)
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.data)
-        self.assertEqual(amount, len(response_json))
+        self.assertEqual(amount, response_json.get('total'))
         return response_json
 
 

@@ -12,7 +12,8 @@ def _get_collection(api, client, collection, conditions):
     limit, skip, sort_by = processes_filters(conditions)
     cursor = client[api][collection].find(conditions)
     cursor = cursor.sort(sort_by).limit(limit).skip(skip)
-    return [fix_id(element) for element in cursor]
+    total = cursor.count()
+    return {'total': total, 'items': [fix_id(item) for item in cursor]}
 
 
 def _get_resource(api, client, collection, resource_id, conditions):
@@ -32,9 +33,7 @@ def get(api, path, client):
         data = _get_collection(api, client, collection, conditions)
     else:
         data = _get_resource(api, client, collection, resource_id, conditions)
-    return response(data, headers={'Content-Type': 'application/%s+json' % (
-        'collection' if resource_id is None else 'resource'
-    )})
+    return response(data)
 
 
 def delete(api, path, client):
