@@ -12,7 +12,7 @@ from .messages import bad_request, invalid, not_allow, not_found, ok
 FILTERS = {'_limit': 10, '_regex': None, '_skip': 0, '_sort': '_id'}
 
 
-def _update(params, conditions):
+def _ignore_id(params, conditions):
     for key in ['id', '_id']:
         if key in params:
             del params[key]
@@ -30,8 +30,8 @@ def split_path(path='', params=None):
     is_odd = len(elements) % 2 == 1
     resource_id = None if is_odd else elements.pop(-1)
     collection = elements.pop(-1)
-    params = params or {}
-    _update(params, dict(zip(elements[0::2], elements[1::2])))
+    params = {} if params is None else params
+    _ignore_id(params, dict(zip(elements[0::2], elements[1::2])))
     return resource_id, collection, params
 
 
