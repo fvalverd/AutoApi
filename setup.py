@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from setuptools import setup, find_packages
 
-version = '1.0.2'
+version = '1.0.3'
 
 setup(
     name='auto_api',
@@ -25,7 +25,7 @@ MongoDB 3.X.
     author='Felipe Valverde Campos',
     author_email='felipe.valverde.campos@gmail.com',
     url='https://github.com/fvalverd/AutoApi',
-    download_url='https://github.com/fvalverd/AutoApi/tarball/v1.0.2',
+    download_url='https://github.com/fvalverd/AutoApi/tarball/v1.0.3',
     license='MIT',
     packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
     include_package_data=True,
