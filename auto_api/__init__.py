@@ -88,11 +88,3 @@ class AutoApi(object):
         """ Implement this method to add more routes """
 
         pass
-
-    def run(self, host='localhost', port=8686, reloader=True, debug=True):
-        """ Start AutoApi web service """
-
-        self.app.run(
-            host=host, port=port, use_reloader=reloader,
-            debug=debug, threaded=True
-        )
