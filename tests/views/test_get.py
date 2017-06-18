@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
+import datetime
 import json
 from operator import itemgetter
 import unittest
 
-from .. import MoviesTest
+from bson.objectid import ObjectId
+
+from auto_api.mongodb import admin
+from .. import BaseTest, MoviesTest
 
 
 class TestGetResource(MoviesTest):
@@ -49,6 +53,41 @@ class TestGetResource(MoviesTest):
             {'message': u'Resource "%s" not found' % self.movies[2]['id']},
             response_json
         )
+
+
+class TestAutoApiDumps(BaseTest):
+
+    @classmethod
+    def setUpClass(cls, auth=False):
+        super(TestAutoApiDumps, cls).setUpClass()
+        cls.collection = 'movies_with_data'
+        cls.now = datetime.datetime(2017, 6, 18, 17, 27, 0)
+        cls.oid = ObjectId()
+        with admin(cls.app.application) as client:
+            cls.oid_oid = str(client[cls.api][cls.collection].insert({
+                'oid': cls.oid
+            }))
+            cls.oid_date = str(client[cls.api][cls.collection].insert({
+                'date': cls.now
+            }))
+
+    @classmethod
+    def tearDownClass(cls):
+        with admin(cls.app.application) as client:
+            client[cls.api][cls.collection].drop()
+        super(TestAutoApiDumps, cls).tearDownClass()
+
+    def test_data_with_object_ids_not_saved_from_autoapi(self):
+        response = self.app.get("{}/{}/{}".format(self.api, self.collection, self.oid_oid))
+        self.assertEqual(response.status_code, 200)
+        response_json = json.loads(response.data or '{}')
+        self.assertDictContainsSubset({'oid': str(self.oid)}, response_json)
+
+    def test_data_with_dates_not_saved_from_autoapi(self):
+        response = self.app.get("{}/{}/{}".format(self.api, self.collection, self.oid_date))
+        self.assertEqual(response.status_code, 200)
+        response_json = json.loads(response.data or '{}')
+        self.assertDictContainsSubset({'date': self.now.isoformat()}, response_json)
 
 
 class TestGetCollection(MoviesTest):
