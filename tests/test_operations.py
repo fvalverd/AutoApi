@@ -63,7 +63,7 @@ class TestLogout(BaseAuthTest):
         response = self.app.post('/login', data=data)
         self.assertEqual(response.status_code, 200)
         headers = self.response_to_headers(response)
-        response = self.app.post('/logout', headers=headers, data={'api': 'api_tests'})
+        response = self.app.post('/logout', headers=headers, data={'api': self.api})
         self.assertEqual(response.status_code, 204)
 
     def test_missing_api(self):

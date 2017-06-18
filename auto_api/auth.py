@@ -12,8 +12,10 @@ from .utils import get_api
 from .validations import validate_api
 
 
-def _inject(app, client, view, kwargs):
+def _inject(api, app, client, view, kwargs):
     argspec = inspect.getargspec(view)[0]
+    if 'api' in argspec:
+        kwargs['api'] = api
     if 'app' in argspec:
         kwargs['app'] = app
     if 'client' in argspec:
@@ -26,9 +28,9 @@ def secure(app, view, role=None, api=None, auth=False, without_api=False):
     def wrapper(*args, **kwargs):
         try:
             _api = api or kwargs.get('api') or get_api(without_api=without_api)
-            validate_api(_api, without_api=without_api)
+            _api = validate_api(_api)
             with check(app, _api, role, auth) as (client, _, __):
-                return view(*args, **_inject(app, client, view, kwargs))
+                return view(*args, **_inject(_api, app, client, view, kwargs))
         except Message as m:
             return m.message
     return wrapper
