@@ -2,6 +2,7 @@
 import json
 import unittest
 
+from auto_api.messages import message
 from . import BaseTest, BaseAuthTest, MoviesTest
 
 
@@ -543,6 +544,21 @@ class TestOtherOperationsAuth(BaseAuthTest):
             response_json,
             {'message': u'This is not a valid operation'}
         )
+
+
+class TestExternalDecorator(BaseTest):
+    def test_autoapi_decorator(self):
+        text = "There is not best movie, only interpretations ;"
+        path = '/{}/best-movie'.format(self.api)
+
+        @self.autoapi.route(path, api=self.api, method='GET')
+        def best_movie():
+            return message(text)
+
+        response = self.app.get(path)
+        self.assertEqual(response.status_code, 200)
+        response_json = json.loads(response.data or '{}')
+        self.assertEqual({"message": text}, response_json)
 
 
 if __name__ == '__main__':
