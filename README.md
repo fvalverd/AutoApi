@@ -11,7 +11,7 @@ Assuming you have MongoDB server running in *localhost* on the default port with
 ```shell
 $ workon api
 (api) $ pip install auto_api
-(api) $ python -m auto_api
+(api) $ autoapi
   * Running on http://localhost:8686/ (Press CTRL+C to quit)
   ...
 ```
@@ -255,9 +255,12 @@ Related info:
 
 ## Running AutoApi
 
-To run AutoApi server, this module implements the *\_\_main\_\_.py* file to run from python. Remember that if you want to try AutoApi with authentication, you must provide the flags *-a* (or *--auth*) and *-f* (or *--config*) with the
-configuration file based on *server.cfg.default* (on this repository).
+In order to run the server, AutoApi implements the **\_\_main\_\_.py** file, therefore after [installing AutoApi](#python-dependencies) it will be created the executable called **autoapi** and the module **auto_api**. On the other hand, remember that if it wanted to run AutoApi with authentication, first [turn on the authentication in MongoDB](#mongodb) and then provide the flags **-a** (or **--auth**) and **-f** (or **--config**) with a configuration file based on *server.cfg.default* (located on this repository) to the following commands:
 
+<pre>
+(api) $ autoapi [[-a] -f server.cfg]
+</pre>
+or
 <pre>
 (api) $ python -m auto_api [[-a] -f server.cfg]
 </pre>

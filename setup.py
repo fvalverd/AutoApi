@@ -43,7 +43,9 @@ MongoDB 3.X.
         'mongobox==0.1.6'
     ],
     test_suite='run_tests.run',
-    entry_points="""
-    # -*- Entry points: -*-
-    """,
+    entry_points={
+        'console_scripts': [
+            'autoapi = auto_api.__main__:main'
+        ]
+    }
 )
