@@ -42,12 +42,9 @@ def _is_original_admin(app, user):
 
 
 def get_info(app, api, client, user):
-    try:
-        db = 'admin' if _is_original_admin(app, user) else api
-        result = client[api].command('usersInfo', {'user': user, 'db': db})
-        return ((result and result.get('users')) or [{}])[0].get('customData')
-    except OperationFailure:
-        return None
+    db = 'admin' if _is_original_admin(app, user) else api
+    result = client[api].command('usersInfo', {'user': user, 'db': db})
+    return ((result and result.get('users')) or [{}])[0].get('customData')
 
 
 def add_user(client, api, user, password, roles):
