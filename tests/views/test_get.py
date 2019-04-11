@@ -64,12 +64,12 @@ class TestAutoApiDumps(BaseTest):
         cls.now = datetime.datetime(2017, 6, 18, 17, 27, 0)
         cls.oid = ObjectId()
         with admin(cls.app.application) as client:
-            cls.oid_oid = str(client[cls.api][cls.collection].insert({
+            cls.oid_oid = client[cls.api][cls.collection].insert_one({
                 'oid': cls.oid
-            }))
-            cls.oid_date = str(client[cls.api][cls.collection].insert({
+            }).inserted_id
+            cls.oid_date = client[cls.api][cls.collection].insert_one({
                 'date': cls.now
-            }))
+            }).inserted_id
 
     @classmethod
     def tearDownClass(cls):

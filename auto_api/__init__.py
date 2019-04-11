@@ -16,14 +16,17 @@ class AutoApi(object):
         self.app = Flask(self.__class__.__name__)
         config_autoapi(self, cors=cors, path=config_path, force_port=port)
 
-        # AutoApi routes
+        # AutoApi operation routes
         self.prefix = 'AutoApi'
         self.load_operations()
-        self.load_api_rest()
 
         # Customize routes
         self.prefix = self.__class__.__name__
         self.load_more_routes()
+
+        # AutoApi rest routes
+        self.prefix = 'AutoApi'
+        self.load_api_rest()
 
     def welcome(self):
         return message(u"Welcome to AutoApi.")

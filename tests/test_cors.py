@@ -11,7 +11,7 @@ class AutoApiConfigTest(unittest.TestCase):
         response = autoapi.app.test_client().get('/')
         self.assertIn(
             ('Access-Control-Allow-Origin', '*'),
-            response.headers.to_list()
+            response.headers.to_wsgi_list()
         )
 
     def test_access_control_allow_origin_header(self):

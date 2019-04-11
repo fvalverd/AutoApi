@@ -2,14 +2,17 @@
 import os
 import sys
 
-from nose import main
+import pytest
 from mongobox import MongoBox
 
 
 MONGO_PORT, MONGO_AUTH_PORT = 27018, 27019
 
 
-def run():
+def run(args=None):
+    if args is None:
+        args = []
+
     CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
     # create temporal directory
@@ -32,6 +35,7 @@ def run():
     )
 
     status, statusA = False, False
+    errno = 1
     try:
         print "Starting mongo servers:"
 
@@ -50,8 +54,7 @@ def run():
         statusA = True
         sys.stdout.flush()
 
-        # run tests with nose
-        main()
+        errno = pytest.main(*args)
     finally:
         # stop servers
         if status:
@@ -65,7 +68,8 @@ def run():
                 sys.stdout.flush()
                 mongoboxA.stop()
                 print "OK"
+    return errno
 
 
 if __name__ == '__main__':
-    run()
+    sys.exit(run())

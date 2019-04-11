@@ -117,13 +117,13 @@ class MoviesTest(LoggedTest):
         super(MoviesTest, cls).setUpClass()
         cls._clean_movies_and_actors()
         with admin(cls.app.application) as client:
-            client[cls.api].actors.insert(cls.actors)
+            client[cls.api].actors.insert_many(cls.actors)
             cls.actors = [fix_id(actor) for actor in cls.actors]
             for movie in cls.movies:
                 movie.update({
                     'actors': cls.actors[cls.movies.index(movie)]['id']
                 })
-            client[cls.api].movies.insert(cls.movies)
+            client[cls.api].movies.insert_many(cls.movies)
             cls.movies = [fix_id(movie) for movie in cls.movies]
 
     @classmethod
