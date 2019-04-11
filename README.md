@@ -77,11 +77,11 @@ And the response will be:
 </pre>
 
 
-## How AutoApi works ?
+## How does AutoApi work?
 
 AutoApi was develop on [Python](https://www.python.org/) using [Flask](http://flask.pocoo.org/) and [MongoDB](https://www.mongodb.com/), it was thought to support multiples API because AutoApi uses a database to represent an API, thus to differentiate between two APIs it is necessary to add the api name as a prefix in the URL. For instance, to retrieve all the movies from *imdb-copy* API it is necessary to do a **GET** to **/imdb-copy/movies**, but to retrieve the movies from **rottentomatoes-copy** API the URL is **/rottentomatoes-copy/movies**.
 
-Another important feature of AutoApi is the authentication, but authentication in this develop is at API level, so users can not be shared between APIs, the reason is AutoApi uses MongoDB users instead using a collection to store them, so they are related to a database and AutoApi consider a database as an API.
+Another important feature of AutoApi is the authentication, but authentication in this develop is at API level, so users can not be shared between APIs, the reason is because AutoApi uses MongoDB users instead of using a collection to store them, so they are related to a database and AutoApi consider a database as an API.
 
 ### Configuration file
 As AutoApi uses MongoDB to store the data, it is necessary to know the location of the database, by default AutoApi will try to connect to the default connection of MongoDB (*localhost*, *27017*) unless a configuration file is given.
@@ -96,7 +96,7 @@ If you are going to use the given script to run AutoApi, you can provide [the co
 
 ### Authentication & Authorization
 
-AutoApi authentication is optional, by default is not activated. To activate it is necessary:
+AutoApi authentication is optional, by default it is not activated. To activate it is necessary:
  - [MongoDB auth](#mongodb) activated
  - [AutoApi configuration file](#configuration-file) filled
  - [Run AutoApi server](running-autoapi) with --auth flag
@@ -150,9 +150,9 @@ To logout, users have to specify the API too:
 <b>X-Token</b>: ADMIN_USER_TOKEN
 
 {
-  "email": "other_user@email.com", 
-  "password": "pass", 
-  "api": "example", 
+  "email": "other_user@email.com",
+  "password": "pass",
+  "api": "example",
   "roles": ["read", "update"]
 }
 </pre>
@@ -167,8 +167,8 @@ Each user can update his own password and only an admin user can change other us
 <b>X-Token</b>: USER_TOKEN
 
 {
-  "email": "other_user@email.com", 
-  "password": "new-pass", 
+  "email": "other_user@email.com",
+  "password": "new-pass",
   "api": "example"
 }
 </pre>
@@ -183,12 +183,12 @@ Finally, only an admin user can change the authorization roles for a particular 
 <b>X-Token</b>: ADMIN_USER_TOKEN
 
 {
-  "email": "other_user@email.com", 
+  "email": "other_user@email.com",
   "api": "example",
   "roles": {
     "update": false,
     "delete": true
-  } 
+  }
 }
 </pre>
 
@@ -205,9 +205,9 @@ To use and API collection in AutoApi it is not necessary to create it, it is als
 
 #### CRUD collection's resources
 
-Is important to remember that if AutoApi's authentication is enabled then only logged users can CRUD API's resources, but it depends on the user's roles for authorization.
+It is important to remember that if AutoApi's authentication is enabled then only logged users, with the respective authorization, can CRUD API's resources.
 
-A good API REST example is show how to mark as a classic all the movies where *actor_1* appears.
+A good API REST example is to show how to mark as a classic all the movies where *actor_1* appears.
 
 <pre>
 <b>PATCH</b> /example/actors/actor_1/movies
@@ -255,7 +255,7 @@ Related info:
 
 ## Running AutoApi
 
-In order to run the server, AutoApi implements the **\_\_main\_\_.py** file, therefore after [installing AutoApi](#python-dependencies) it will be created the executable called **autoapi** and the module **auto_api**. On the other hand, remember that if it wanted to run AutoApi with authentication, first [turn on the authentication in MongoDB](#mongodb) and then provide the flags **-a** (or **--auth**) and **-f** (or **--config**) with a configuration file based on *server.cfg.default* (located on this repository) to the following commands:
+To start the service AutoApi implements the **\_\_main\_\_.py** file, so after [installing AutoApi](#python-dependencies) it will be created the executable called **autoapi** and the module **auto_api**. Also, remember that if you want to run AutoApi with authentication, you must first [turn on the authentication in MongoDB](#mongodb) and then provide the flags **-a** (or **--auth**) and **-f** (or **--config**) with a configuration file based on *server.cfg.default* (located on this repository) to the following commands:
 
 <pre>
 (api) $ autoapi [[-a] -f server.cfg]
@@ -267,7 +267,7 @@ or
 
 ## Testing AutoApi
 
-To run AutoApi test there is a script called *run_tests.py*. This script will automatically start and stop two MongoDB servers (one with authentication enabled) only for testing purpose.
+To run the AutoApi test there is a script called *run_tests.py*. This script will automatically start and stop two MongoDB servers (one with authentication enabled) for testing purpose only.
 
 <pre>
 $ ./run_tests.py [nose-parameters]
