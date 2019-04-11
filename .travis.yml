@@ -6,7 +6,7 @@ services:
 install:
   - python setup.py develop
 before_script:
-  - pip install python-coveralls
+  - pip install coverage python-coveralls
 script:
   - python setup.py run_tests -a '-sv'
 after_script:
