@@ -32,10 +32,9 @@ MongoDB 3.X.
     zip_safe=False,
     install_requires=[
         'click==6.7',
-        'Flask==0.12.2',
-        'flask-cors==3.0.2',
-        'pymongo==3.4.0',
-        'pyOpenSSL==17.0.0'
+        'Flask>=1.0.2',
+        'flask-cors==3.0.7',
+        'pymongo>=3.7.2,<4'
     ],
     tests_require=[
         'nose',

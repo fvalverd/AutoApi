@@ -19,4 +19,5 @@ def main(auth, debug, config, host, port, reloader):
 
 
 if __name__ == '__main__':
+    # pylint: disable=no-value-for-parameter
     main()

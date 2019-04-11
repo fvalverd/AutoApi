@@ -2,9 +2,8 @@
 from contextlib import contextmanager
 import uuid
 
-import OpenSSL
 from pymongo import MongoClient
-from pymongo.errors import PyMongoError, OperationFailure
+from pymongo.errors import PyMongoError
 
 from .exceptions import Message
 from .messages import unauthenticated
@@ -54,7 +53,7 @@ def add_user(client, api, user, password, roles):
 
 
 def _create_token():
-    return str(uuid.UUID(bytes=OpenSSL.rand.bytes(16)))
+    return str(uuid.uuid4())
 
 
 def update_roles(app, api, client, user, roles):
