@@ -96,6 +96,10 @@ class TestLogout(BaseAuthTest):
 
 class TestCreateUser(MoviesTest):
 
+    def tearDown(self):
+        self.remove_user(self.api, 'fvalverd')
+        super(BaseTest, self).tearDown()
+
     def test_missing_parameters(self):
         test_data = {'email': u'fvalverd', 'api': self.api, 'roles': ['read']}
 
@@ -110,6 +114,22 @@ class TestCreateUser(MoviesTest):
         response_json = json.loads(response.data or '{}')
         self.assertDictContainsSubset(
             {'message': u'Missing parameters'},
+            response_json
+        )
+
+    def test_already_existing_user(self):
+        test_data = {'email': self.user, 'password': self.password, 'api': self.api}
+        admin_headers = self.get_admin_headers()
+        response = self.app.post(
+            '/user',
+            headers=admin_headers,
+            data=json.dumps(test_data),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 409)
+        response_json = json.loads(response.data or '{}')
+        self.assertDictContainsSubset(
+            {'message': u'User already exists'},
             response_json
         )
 
@@ -339,6 +359,13 @@ class TestEditRoles(MoviesTest):
         response = cls.app.post('/login', data=cls.read_user)
         cls.read_user_header = cls.response_to_headers(response)
 
+    @classmethod
+    def tearDownClass(cls):
+        cls.remove_user(cls.api, 'fvalverd')
+        cls.remove_user(cls.api, 'user_1')
+        cls.remove_user(cls.api, 'user_2')
+        super(TestEditRoles, cls).tearDownClass()
+
     def test_missing_parameters(self):
         response = self.app.post(
             '/roles',
@@ -449,7 +476,8 @@ class TestChangePassword(BaseAuthTest):
         super(TestChangePassword, self).setUp()
         self._user = u'fvalverd'
         self._pass = u'pass'
-        self.add_user(self.api, self._user, self._pass, ['read'])
+        self.remove_user(self.api, self._user)
+        self.create_user(self.api, self._user, self._pass, ['read'])
 
     def tearDown(self):
         self.remove_user(self.api, self._user)
@@ -488,6 +516,20 @@ class TestChangePassword(BaseAuthTest):
 
         response = self.app.post('/login', data=data)
         self.assertEqual(response.status_code, 200)
+
+    def test_only_its_own_password_can_be_change(self):
+        data = {'email': self._user, 'password': self._pass, 'api': self.api}
+        response = self.app.post('/login', data=data)
+        headers = self.response_to_headers(response)
+
+        data = {'email': self.user, 'password': self.password, 'api': self.api}
+        response = self.app.post('/password', data=data, headers=headers)
+        self.assertEqual(response.status_code, 409)
+        response_json = json.loads(response.data or '{}')
+        self.assertDictEqual(
+            response_json,
+            {'message': u'A user can only change their own password'}
+        )
 
 
 class TestOtherOperations(BaseTest):
@@ -548,7 +590,7 @@ class TestOtherOperationsAuth(BaseAuthTest):
 
 class TestExternalDecorator(BaseTest):
     def test_autoapi_decorator(self):
-        text = "There is not best movie, only interpretations ;"
+        text = 'There is not best movie, only interpretations'
         path = '/{}/best-movie'.format(self.api)
 
         @self.autoapi.route(path, api=self.api, method='GET')
@@ -558,7 +600,7 @@ class TestExternalDecorator(BaseTest):
         response = self.app.get(path)
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.data or '{}')
-        self.assertEqual({"message": text}, response_json)
+        self.assertEqual({'message': text}, response_json)
 
 
 if __name__ == '__main__':

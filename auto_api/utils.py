@@ -6,10 +6,16 @@ from bson.errors import InvalidId
 from flask import request
 
 from .exceptions import Message
-from .messages import bad_request, invalid, not_allow, not_found, ok
+from .messages import invalid, not_allow, not_found, ok
 
 
 FILTERS = {'_limit': 10, '_regex': None, '_skip': 0, '_sort': '_id'}
+
+
+def _pluck(dictionary, *keys):
+    if len(keys) == 1:
+        return dictionary.get(keys[0])
+    return [dictionary.get(key) for key in keys]
 
 
 def _ignore_id(params, conditions):
@@ -20,9 +26,8 @@ def _ignore_id(params, conditions):
 
 
 def fix_id(result):
-    if result is not None and result.get('_id'):
-        result['id'] = str(result.pop('_id'))
-        return result
+    result['id'] = str(result.pop('_id'))
+    return result
 
 
 def split_path(path='', params=None):
@@ -33,14 +38,6 @@ def split_path(path='', params=None):
     params = {} if params is None else params
     _ignore_id(params, dict(zip(elements[0::2], elements[1::2])))
     return resource_id, collection, params
-
-
-def get_api(without_api=False):
-    params = request.json or request.form.to_dict()
-    api = params.get('api')
-    if api is not None or without_api:
-        return api
-    raise Message(bad_request(u'Missing "api" parameter'))
 
 
 @contextmanager
@@ -61,8 +58,11 @@ def autoapi_data(path, collections=False):
 def update_view(api, path, client, replace=False):
     with autoapi_data(path) as (resource_id, collection, conditions, params):
         operations = params if replace else {'$set': params}
-        result = client[api][collection].update(conditions, operations)
-        if result['n'] == 0:
+        func = client[api][collection].update_one
+        if replace:
+            func = client[api][collection].replace_one
+        result = func(conditions, operations)
+        if result.matched_count == 0:
             return not_found(u'Resource "%s" not found' % resource_id)
         return ok()
 

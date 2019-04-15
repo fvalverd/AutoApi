@@ -3,7 +3,7 @@ from contextlib import contextmanager
 import uuid
 
 from pymongo import MongoClient
-from pymongo.errors import PyMongoError
+from pymongo.errors import PyMongoError, DuplicateKeyError
 
 from .exceptions import Message
 from .messages import unauthenticated
@@ -25,70 +25,84 @@ def get_client(app):
 
 
 @contextmanager
-def admin(app, client=None):
-    _client = client or get_client(app)
+def admin(app):
+    client = get_client(app)
     try:
-        _client.admin.authenticate(**get_values(app.config, ADMIN_KEYS))
+        client.admin.authenticate(**get_values(app.config, ADMIN_KEYS))
     except PyMongoError:
         pass
-    yield _client
-    if client is None:
-        _client.admin.logout()
+    yield client
+    client.close()
 
 
 def _is_original_admin(app, user):
     return user == app.config[ADMIN_KEYS['name']]
 
 
-def get_info(app, api, client, user):
+def get_custom_data(app, api, client, user):
     db = 'admin' if _is_original_admin(app, user) else api
     result = client[api].command('usersInfo', {'user': user, 'db': db})
-    return ((result and result.get('users')) or [{}])[0].get('customData')
+    return ((result and result.get('users')) or [{}])[0].get('customData'), db
 
 
-def add_user(client, api, user, password, roles):
-    client[api].add_user(
-        user, password, customData={'roles': roles or DEFAULT_ROLES}
-    )
+def create_user(app, api, user, password, roles=None, db_roles=None):
+    with admin(app) as client:
+        try:
+            client[api].command(
+                'createUser',
+                user,
+                pwd=password,
+                roles=db_roles or [],
+                customData={'roles': roles or DEFAULT_ROLES},
+            )
+        except DuplicateKeyError:
+            return False
+    return True
+
+
+def update_user_password(app, api, user, password):
+    with admin(app) as client:
+        client[api].command('updateUser', user, pwd=password)
 
 
 def _create_token():
     return str(uuid.uuid4())
 
 
-def update_roles(app, api, client, user, roles):
-    info = get_info(app, api, client, user)
-    if info is not None:
-        info['roles'] = [
-            role
-            for role in (info.get('roles') or []) + roles.keys()
-            if roles.get(role, True) and role in BUILT_IN_ROLES
-        ]
-        client[api].command('updateUser', user, customData=info)
-        return True
+def update_roles(app, api, user, roles):
+    with admin(app) as client:
+        data, db = get_custom_data(app, api, client, user)
+        if data is not None:
+            data['roles'] = [
+                role
+                for role in (data.get('roles') or []) + roles.keys()
+                if roles.get(role, True) and role in BUILT_IN_ROLES
+            ]
+            client[db].command('updateUser', user, customData=data)
+            return True
+    return False
 
 
-def get_token(app, api, client, user, password):
-    api = 'admin' if app.config[ADMIN_KEYS['name']] == user else api
+def create_token(app, api, user, password):
     try:
-        client[api].authenticate(user, password)
-        client[api].logout()
+        db = 'admin' if _is_original_admin(app, user) else api
+        client = get_client(app)
+        client[db].authenticate(user, password)
     except PyMongoError:
         raise Message(unauthenticated())
+    finally:
+        client.close()
     token = _create_token()
-    with admin(app, client=client) as client:
-        result = client[api].command('usersInfo', {'user': user, 'db': api})
-        customData = result.get('users')[0].get('customData')
-        customData['tokens'] = customData.get('tokens', []) + [token]
-        client[api].command('updateUser', user, customData=customData)
+    with admin(app) as client:
+        data, db = get_custom_data(app, api, client, user)
+        data['tokens'] = data.get('tokens', []) + [token]
+        client[db].command('updateUser', user, customData=data)
         return token
 
 
-def remove_token(app, api, user, token):
-    api = 'admin' if app.config[ADMIN_KEYS['name']] == user else api
+def delete_token(app, api, user, token):
     with admin(app) as client:
-        result = client[api].command('usersInfo', {'user': user, 'db': api})
-        customData = result.get('users')[0].get('customData')
-        if token in customData.get('tokens', []):
-            customData['tokens'].remove(token)
-            client[api].command('updateUser', user, customData=customData)
+        data, db = get_custom_data(app, api, client, user)
+        if token in data.get('tokens', []):
+            data['tokens'].remove(token)
+            client[db].command('updateUser', user, customData=data)

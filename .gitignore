@@ -65,4 +65,5 @@ target/
 # AutoApi config
 .tmp
 tests.cfg
+tests.cfg.defaultc
 server.cfg

@@ -3,7 +3,7 @@ import unittest
 import json
 
 from auto_api import AutoApi
-from auto_api.mongodb import admin
+from auto_api.mongodb import create_user, admin
 from auto_api.utils import fix_id
 
 
@@ -23,15 +23,8 @@ class BaseTest(unittest.TestCase):
         cls.autoapi = AutoApi(auth=auth, port=cls.port)
         cls.app = cls.autoapi.app.test_client()
         if auth:
-            cls.add_user(cls.api, cls.user, cls.password, ['admin'])
-
-    @classmethod
-    def tearDownClass(cls):
-        with admin(cls.app.application) as client:
-            if cls.autoapi.auth:
-                client[cls.api].authenticate(cls.user, cls.password)
-            client.drop_database(cls.api)
-        super(BaseTest, cls).tearDownClass()
+            cls.remove_user(cls.api, cls.user)
+            cls.create_user(cls.api, cls.user, cls.password, ['admin'])
 
     @classmethod
     def response_to_headers(cls, response):
@@ -41,14 +34,16 @@ class BaseTest(unittest.TestCase):
         }
 
     @classmethod
-    def add_user(cls, api, user, password, roles):
-        with admin(cls.app.application) as client:
-            client[api].add_user(user, password, customData={'roles': roles})
+    def create_user(cls, api, user, password, roles):
+        app = cls.app.application
+        create_user(app, api, user, password, roles)
 
     @classmethod
     def remove_user(cls, api, user):
         with admin(cls.app.application) as client:
-            client[api].remove_user(user)
+            r = client[api].command('usersInfo', {'user': user, 'db': api})
+            if r['users']:
+                client[api].command('dropUser', user)
 
     def get_admin_headers(self):
         return self.response_to_headers(

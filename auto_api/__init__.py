@@ -13,6 +13,7 @@ class AutoApi(object):
 
     def __init__(self, auth=False, cors=True, config_path=None, port=None):
         self.auth = auth
+        self.cors = cors
         self.app = Flask(self.__class__.__name__)
         config_autoapi(self, cors=cors, path=config_path, force_port=port)
 
@@ -33,7 +34,7 @@ class AutoApi(object):
 
     def add(
         self, path, view, api=None, no_auth=False,
-        method='POST', role=None, all_methods=False, without_api=False
+        method='POST', role=None, all_methods=False, no_api=False
     ):
         """" Bind path with view on AutoApi """
 
@@ -42,7 +43,7 @@ class AutoApi(object):
             endpoint=u"{}.{}".format(self.prefix, view.__name__),
             view_func=secure(
                 self.app, view, role=role, api=api,
-                auth=self.auth and not no_auth, without_api=without_api
+                auth=self.auth and not no_auth, no_api=no_api
             ),
             methods=all_methods and list(http_method_funcs) or [method],
         )
@@ -60,13 +61,13 @@ class AutoApi(object):
         # AutoApi welcome message
         self.add(
             '/', lambda: self.welcome(), no_auth=True,
-            all_methods=True, without_api=True
+            all_methods=True, no_api=True
         )
 
         # Invalid operation message
         self.add(
             '/<api>', invalid_operation, no_auth=True,
-            all_methods=True, without_api=True
+            all_methods=True, no_api=True
         )
 
         # AutoApi auth operations

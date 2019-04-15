@@ -55,8 +55,8 @@ class AutoApiConfigTest(unittest.TestCase):
 class AutoApiConfigAuthTest(unittest.TestCase):
 
     @staticmethod
-    def _create_autoapi(**kwargs):
-        return AutoApi(auth=True, port=MONGO_AUTH_PORT, **kwargs)
+    def _create_autoapi(port=True, **kwargs):
+        return AutoApi(auth=True, port=port and MONGO_AUTH_PORT, **kwargs)
 
     def test_default(self):
         autoapi = self._create_autoapi()
@@ -78,6 +78,12 @@ class AutoApiConfigAuthTest(unittest.TestCase):
     def test_default_only_pass(self):
         with self.assertRaises(AutoApiMissingAdminConfig):
             self._create_autoapi()
+
+    @mock.patch('flask.Config.from_envvar', _raise(RuntimeError))
+    @mock.patch.dict(os.environ, {})
+    def test_missing_admin_values(self):
+        with self.assertRaises(AutoApiMissingAdminConfig):
+            self._create_autoapi(port=None)
 
 
 if __name__ == '__main__':

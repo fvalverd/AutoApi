@@ -1,12 +1,17 @@
 #!/usr/bin/env python
+# import importlib
+import imp
 import os
+import shutil
 import sys
 
 import pytest
+from pymongo import MongoClient
 from mongobox import MongoBox
 
 
 MONGO_PORT, MONGO_AUTH_PORT = 27018, 27019
+AUTOAPI_SETTINGS_FILE = 'tests.cfg.default'
 
 
 def run(args=None):
@@ -23,10 +28,34 @@ def run(args=None):
     DB_PATH = os.path.join(TMP_DIR, 'data')
     DB_PATH_AUTH = os.path.join(TMP_DIR, 'data_auth')
 
+    if os.path.exists(DB_PATH_AUTH):
+        shutil.rmtree(DB_PATH_AUTH)
+
     # set autoapi environment variable for config
     os.environ['AUTOAPI_SETTINGS'] = os.path.join(
-        CURRENT_DIR, 'tests.cfg.default'
+        CURRENT_DIR, AUTOAPI_SETTINGS_FILE
     )
+
+    def create_admin():
+        print " - admin user on server auth...",
+        sys.stdout.flush()
+
+        # config module file
+        config = imp.load_source('module.name', os.environ['AUTOAPI_SETTINGS'])
+
+        client = MongoClient(port=MONGO_AUTH_PORT)
+        client.admin.command(
+            'createUser',
+            config.MONGO_ADMIN,
+            pwd=config.MONGO_ADMIN_PASS,
+            roles=[
+                {'role': 'userAdminAnyDatabase', 'db': 'admin'},
+                'readWriteAnyDatabase'
+            ],
+            customData={'roles': ['admin']}
+        )
+        client.close()
+        print "OK"
 
     mongobox = MongoBox(mongod_bin='mongod', db_path=DB_PATH, port=MONGO_PORT)
     mongoboxA = MongoBox(
@@ -37,7 +66,7 @@ def run(args=None):
     status, statusA = False, False
     errno = 1
     try:
-        print "Starting mongo servers:"
+        print "\nStarting mongo servers:"
 
         # start server
         print " - server...",
@@ -50,8 +79,10 @@ def run(args=None):
         print " - server auth...",
         sys.stdout.flush()
         mongoboxA.start()
-        print "OK\n"
+        print "OK"
         statusA = True
+        create_admin()
+        print "\n"
         sys.stdout.flush()
 
         errno = pytest.main(*args)
