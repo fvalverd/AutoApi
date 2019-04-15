@@ -2,13 +2,11 @@
 import os
 import unittest
 
-import mock
-
 from auto_api import AutoApi
 from auto_api.config import AUTOAPI_SETTINGS_VAR
 from auto_api.exceptions import AutoApiMissingAdminConfig
 from auto_api.mongodb import ADMIN_KEYS
-from . import MONGO_PORT, MONGO_AUTH_PORT
+from . import mock, MONGO_PORT, MONGO_AUTH_PORT
 
 
 UNEXISTING_PATH = "/unexisting_path"

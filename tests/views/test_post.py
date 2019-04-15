@@ -2,11 +2,10 @@
 import json
 import unittest
 
-import mock
 from pymongo.collection import Collection
 from pymongo.results import InsertOneResult
 
-from .. import MoviesTest
+from .. import mock, MoviesTest
 
 
 class TestPost(MoviesTest):

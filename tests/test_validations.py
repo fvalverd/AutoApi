@@ -2,10 +2,8 @@
 import json
 import datetime
 
-import mock
-
 from auto_api.mongodb import admin, get_client
-from . import BaseTest, BaseAuthTest, LoggedTest
+from . import mock, BaseTest, BaseAuthTest, LoggedTest
 
 
 class TestApiLimits(BaseAuthTest):
@@ -15,7 +13,7 @@ class TestApiLimits(BaseAuthTest):
         response = self.app.get('/Movie$', headers=headers)
         self.assertEqual(response.status_code, 400)
         response_json = json.loads(response.data or '{}')
-        self.assertTrue(response_json['message'].startswith('Api can not contain the following chracters: /\. "$'))
+        self.assertTrue(response_json['message'].startswith('Api can not contain the following chracters: /\\. "$'))
 
 
 class TestCaseSensitive(BaseAuthTest):

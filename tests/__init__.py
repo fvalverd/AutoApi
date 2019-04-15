@@ -1,10 +1,17 @@
 # -*- coding: utf-8 -*-
 import unittest
 import json
+import sys
 
 from auto_api import AutoApi
 from auto_api.mongodb import create_user, admin
 from auto_api.utils import fix_id
+
+
+if sys.version_info > (2, 7):
+    from unittest import mock
+else:
+    import mock
 
 
 MONGO_PORT = 27018
