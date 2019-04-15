@@ -2,6 +2,7 @@
 from contextlib import contextmanager
 from functools import wraps
 import inspect
+import sys
 
 from flask import request
 
@@ -11,13 +12,21 @@ from .mongodb import admin, get_custom_data
 from .validations import validate_api
 
 
+def _get_arguments(view):
+    if sys.version_info >= (3, 4):
+        return inspect.signature(view).parameters
+    elif sys.version_info > (2, 7):
+        return inspect.getfullargspec(view).args
+    return inspect.getargspec(view).args
+
+
 def _d(api, app, client, view, kwargs):
-    values = inspect.getfullargspec(view).args
-    if 'api' in values:
+    arguments = _get_arguments(view)
+    if 'api' in arguments:
         kwargs['api'] = api
-    if 'app' in values:
+    if 'app' in arguments:
         kwargs['app'] = app
-    if 'client' in values:
+    if 'client' in arguments:
         kwargs['client'] = client
     return kwargs
 
