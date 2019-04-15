@@ -8,7 +8,8 @@ from auto_api.mongodb import create_user, admin
 from auto_api.utils import fix_id
 
 
-if sys.version_info > (2, 7):
+PY3 = sys.version_info >= (3, 0)
+if PY3:
     from unittest import mock
 else:
     import mock
