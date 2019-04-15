@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# import importlib
+from __future__ import print_function
 import imp
 import os
 import shutil
@@ -37,7 +37,7 @@ def run(args=None):
     )
 
     def create_admin():
-        print " - admin user on server auth...",
+        print(' - admin user on server auth...', end='')
         sys.stdout.flush()
 
         # config module file
@@ -55,7 +55,7 @@ def run(args=None):
             customData={'roles': ['admin']}
         )
         client.close()
-        print "OK"
+        print('OK')
 
     mongobox = MongoBox(mongod_bin='mongod', db_path=DB_PATH, port=MONGO_PORT)
     mongoboxA = MongoBox(
@@ -66,39 +66,39 @@ def run(args=None):
     status, statusA = False, False
     errno = 1
     try:
-        print "\nStarting mongo servers:"
+        print('\nStarting mongo servers')
 
         # start server
-        print " - server...",
+        print(' - server...', end='')
         sys.stdout.flush()
         mongobox.start()
         status = True
-        print "OK"
+        print('OK')
 
         # start auth server
-        print " - server auth...",
+        print(' - server auth...', end='')
         sys.stdout.flush()
         mongoboxA.start()
-        print "OK"
+        print('OK')
         statusA = True
         create_admin()
-        print "\n"
+        print('\n')
         sys.stdout.flush()
 
         errno = pytest.main(*args)
     finally:
         # stop servers
         if status:
-            print "\n\nStoping mongo servers:"
-            print " - server...",
+            print('\n\nStoping mongo servers:')
+            print(' - server...', end='')
             sys.stdout.flush()
             mongobox.stop()
-            print "OK"
+            print('OK')
             if statusA:
-                print " - server auth...",
+                print(' - server... auth', end='')
                 sys.stdout.flush()
                 mongoboxA.stop()
-                print "OK"
+                print('OK')
     return errno
 
 
