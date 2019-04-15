@@ -1,6 +1,10 @@
 language: python
 python:
-  - "2.7"
+  - 3.7
+  - 3.6
+  - 3.5
+  - 3.4
+  - 2.7
 services:
   - mongodb
 install:
@@ -8,6 +12,6 @@ install:
 before_script:
   - pip install coverage python-coveralls
 script:
-  - python setup.py run_tests -a '-sv'
+  - python setup.py test -a '-sv'
 after_script:
   - coveralls

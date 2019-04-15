@@ -8,7 +8,7 @@ VERSION = '1.0.3'
 
 class RunTests(TestCommand):
     user_options = [
-        ("runtests-args=", "a", "Arguments to pass to pytest (ex: '-sv')")
+        ('runtests-args=', 'a', "Arguments to pass to pytest (ex: '-sv')")
     ]
 
     def initialize_options(self):
@@ -25,11 +25,11 @@ setup(
     name='auto_api',
     version=VERSION,
     description='Automatic API REST',
-    long_description="""
+    long_description='''
 AutoApi was created to not wasting time to developing an API REST at the
 project start. Has an authentication system to provided secure data based on
 MongoDB
-""",
+''',
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
@@ -63,9 +63,5 @@ MongoDB
         'pytest-cov'
     ],
     cmdclass={'run_tests': RunTests},
-    entry_points={
-        'console_scripts': [
-            'autoapi = auto_api.__main__:main'
-        ]
-    }
+    entry_points={'console_scripts': ['autoapi = auto_api.__main__:main']}
 )
