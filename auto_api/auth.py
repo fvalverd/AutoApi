@@ -12,12 +12,12 @@ from .validations import validate_api
 
 
 def _d(api, app, client, view, kwargs):
-    argspec = inspect.getargspec(view)[0]
-    if 'api' in argspec:
+    values = inspect.getfullargspec(view).args
+    if 'api' in values:
         kwargs['api'] = api
-    if 'app' in argspec:
+    if 'app' in values:
         kwargs['app'] = app
-    if 'client' in argspec:
+    if 'client' in values:
         kwargs['client'] = client
     return kwargs
 

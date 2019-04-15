@@ -54,6 +54,11 @@ class BaseTest(unittest.TestCase):
             })
         )
 
+    def assertDictContainsSubset(self, a, b):
+        for key, value in a.items():
+            self.assertIn(key, b)
+            self.assertEqual(value, b[key])
+
 
 class BaseAuthTest(BaseTest):
     @classmethod

@@ -37,7 +37,7 @@ def run(args=None):
     )
 
     def create_admin():
-        print(' - admin user on server auth...', end='')
+        print(' - admin user on server auth...', end=' ')
         sys.stdout.flush()
 
         # config module file
@@ -69,14 +69,14 @@ def run(args=None):
         print('\nStarting mongo servers')
 
         # start server
-        print(' - server...', end='')
+        print(' - server...', end=' ')
         sys.stdout.flush()
         mongobox.start()
         status = True
         print('OK')
 
         # start auth server
-        print(' - server auth...', end='')
+        print(' - server auth...', end=' ')
         sys.stdout.flush()
         mongoboxA.start()
         print('OK')
@@ -90,12 +90,12 @@ def run(args=None):
         # stop servers
         if status:
             print('\n\nStoping mongo servers:')
-            print(' - server...', end='')
+            print(' - server...', end=' ')
             sys.stdout.flush()
             mongobox.stop()
             print('OK')
             if statusA:
-                print(' - server... auth', end='')
+                print(' - server auth...', end=' ')
                 sys.stdout.flush()
                 mongoboxA.stop()
                 print('OK')

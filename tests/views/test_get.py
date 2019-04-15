@@ -96,13 +96,13 @@ class TestGetCollection(MoviesTest):
         response = self.app.get('/%s/countries' % self.api, headers=self.headers)
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.data)
-        self.assertItemsEqual({'total': 0, 'items': []}, response_json)
+        self.assertDictEqual({'total': 0, 'items': []}, response_json)
 
     def test_get(self):
         response = self.app.get('/%s/movies' % self.api, headers=self.headers)
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.data)
-        self.assertItemsEqual({'total': len(self.movies), 'items': self.movies}, response_json)
+        self.assertDictEqual({'total': len(self.movies), 'items': self.movies}, response_json)
 
     def test_get_nested(self):
         response = self.app.get(
@@ -111,7 +111,7 @@ class TestGetCollection(MoviesTest):
         )
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.data)
-        self.assertItemsEqual({'total': 1, 'items': [self.movies[0]]}, response_json)
+        self.assertDictEqual({'total': 1, 'items': [self.movies[0]]}, response_json)
 
 
 class TestGetCollectionParameters(MoviesTest):
@@ -124,7 +124,7 @@ class TestGetCollectionParameters(MoviesTest):
         )
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.data)
-        self.assertItemsEqual({'total': len(self.movies[1:2]), 'items': self.movies[1:2]}, response_json)
+        self.assertDictEqual({'total': len(self.movies[1:2]), 'items': self.movies[1:2]}, response_json)
 
     def test_sort(self):
         response = self.app.get(
@@ -161,7 +161,7 @@ class TestGetCollectionParameters(MoviesTest):
         )
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.data)
-        self.assertItemsEqual({'total': len(self.movies[:2]), 'items': self.movies[:2]}, response_json)
+        self.assertDictEqual({'total': len(self.movies), 'items': self.movies[:2]}, response_json)
 
     def test_skip(self):
         response = self.app.get(
@@ -171,7 +171,7 @@ class TestGetCollectionParameters(MoviesTest):
         )
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.data)
-        self.assertItemsEqual({'total': len(self.movies[1:]), 'items': self.movies[1:]}, response_json)
+        self.assertDictEqual({'total': len(self.movies), 'items': self.movies[1:]}, response_json)
 
     def test_regex(self):
         response = self.app.get(
@@ -181,7 +181,7 @@ class TestGetCollectionParameters(MoviesTest):
         )
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.data)
-        self.assertItemsEqual({'total': len(self.movies[1:2]), 'items': self.movies[1:2]}, response_json)
+        self.assertDictEqual({'total': len(self.movies[1:2]), 'items': self.movies[1:2]}, response_json)
 
     def test_regex2(self):
         response = self.app.get(
@@ -191,7 +191,7 @@ class TestGetCollectionParameters(MoviesTest):
         )
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.data)
-        self.assertItemsEqual({'total': len(self.actors[0:2]), 'items': self.actors[0:2]}, response_json)
+        self.assertDictEqual({'total': len(self.actors[0:2]), 'items': self.actors[0:2]}, response_json)
 
 
 if __name__ == '__main__':

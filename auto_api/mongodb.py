@@ -17,7 +17,7 @@ ADMIN_KEYS = {'name': 'MONGO_ADMIN', 'password': 'MONGO_ADMIN_PASS'}
 
 
 def get_values(config, data):
-    return {k: config[v] for k, v in data.iteritems() if v in config}
+    return {k: config[v] for k, v in data.items() if v in config}
 
 
 def get_client(app):
@@ -75,7 +75,7 @@ def update_roles(app, api, user, roles):
         if data is not None:
             data['roles'] = [
                 role
-                for role in (data.get('roles') or []) + roles.keys()
+                for role in (data.get('roles') or []) + list(roles.keys())
                 if roles.get(role, True) and role in BUILT_IN_ROLES
             ]
             client[db].command('updateUser', user, customData=data)
