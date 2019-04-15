@@ -57,7 +57,7 @@ MongoDB
         'pymongo>=3.7.2,<4'
     ],
     tests_require=[
-        'mock',
+        'mock;python_version<="2.7"',
         'mongobox>=0.1.8',
         'pytest',
         'pytest-cov'
