@@ -1,6 +1,6 @@
 # AutoApi
 
-[![Build Status](https://travis-ci.org/fvalverd/AutoApi.svg?branch=master)](https://travis-ci.org/fvalverd/AutoApi) [![Coverage Status](https://coveralls.io/repos/fvalverd/AutoApi/badge.svg)](https://coveralls.io/r/fvalverd/AutoApi) [![Code Climate](https://codeclimate.com/github/fvalverd/AutoApi/badges/gpa.svg)](https://codeclimate.com/github/fvalverd/AutoApi)
+[![PyPI pyversions](https://img.shields.io/pypi/pyversions/auto_api.svg)](https://pypi.python.org/pypi/auto_api/) [![Build Status](https://travis-ci.org/fvalverd/AutoApi.svg?branch=master)](https://travis-ci.org/fvalverd/AutoApi) [![Coverage Status](https://coveralls.io/repos/fvalverd/AutoApi/badge.svg)](https://coveralls.io/r/fvalverd/AutoApi) [![Code Climate](https://codeclimate.com/github/fvalverd/AutoApi/badges/gpa.svg)](https://codeclimate.com/github/fvalverd/AutoApi)
 
 The goal of AutoApi is avoid developing an [API REST](https://en.wikipedia.org/wiki/Representational_state_transfer) at the start of a project, making a prototype easier than usual. AutoApi also has an authentication system and multiple APIs are supported.
 
