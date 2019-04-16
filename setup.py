@@ -57,11 +57,13 @@ MongoDB
         'pymongo>=3.7.2,<4'
     ],
     tests_require=[
-        'mock;python_version<="2.7"',
+        'mock;python_version<"3.0"',
         'mongobox>=0.1.8',
         'pytest',
         'pytest-cov'
     ],
     cmdclass={'run_tests': RunTests},
-    entry_points={'console_scripts': ['autoapi = auto_api.__main__:main']}
+    entry_points={
+        'console_scripts': ['autoapi = auto_api.__main__:main']
+    }
 )

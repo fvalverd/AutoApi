@@ -1,18 +1,37 @@
 # -*- coding: utf-8 -*-
-import unittest
 import json
-import sys
+import unittest
 
 from auto_api import AutoApi
 from auto_api.mongodb import create_user, admin
 from auto_api.utils import fix_id
 
 
+import sys
 PY3 = sys.version_info >= (3, 0)
 if PY3:
     from unittest import mock
 else:
     import mock
+
+PY34_35 = (3, 0) <= sys.version_info < (3, 6)
+
+if PY34_35:
+    from functools import update_wrapper
+    from types import FunctionType
+
+    def copy_func(f):
+        ''' Based on http://stackoverflow.com/a/6528148/190597 '''
+        g = FunctionType(f.__code__, f.__globals__, argdefs=f.__defaults__)
+        g = update_wrapper(g, f)
+        return g
+
+    json_loads_copy = copy_func(json.loads)
+
+    def customized_json(data, *args, **kwargs):
+        if isinstance(data, (bytes, bytearray)):
+            return json_loads_copy(data.decode('utf-8'), *args, **kwargs)
+        return json_loads_copy(data, *args, **kwargs)
 
 
 MONGO_PORT = 27018
@@ -33,6 +52,15 @@ class BaseTest(unittest.TestCase):
         if auth:
             cls.remove_user(cls.api, cls.user)
             cls.create_user(cls.api, cls.user, cls.password, ['admin'])
+        if PY34_35:
+            cls.json_loads_patch = mock.patch('json.loads', customized_json)
+            cls.json_loads_patch.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        if PY34_35:
+            cls.json_loads_patch.stop()
+        super(BaseTest, cls).tearDownClass()
 
     @classmethod
     def response_to_headers(cls, response):

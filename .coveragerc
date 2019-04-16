@@ -1,3 +1,0 @@
-[run]
-branch = True
-omit = ./auto_api/__main__.py
