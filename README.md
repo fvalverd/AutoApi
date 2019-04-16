@@ -1,6 +1,6 @@
 # AutoApi
 
-[![PyPI pyversions](https://img.shields.io/pypi/pyversions/auto_api.svg)](https://pypi.python.org/pypi/auto_api/) [![Build Status](https://travis-ci.org/fvalverd/AutoApi.svg?branch=master)](https://travis-ci.org/fvalverd/AutoApi) [![Coverage Status](https://coveralls.io/repos/fvalverd/AutoApi/badge.svg)](https://coveralls.io/r/fvalverd/AutoApi) [![Code Climate](https://codeclimate.com/github/fvalverd/AutoApi/badges/gpa.svg)](https://codeclimate.com/github/fvalverd/AutoApi)
+[![PyPI pyversions](https://img.shields.io/pypi/pyversions/auto_api.svg)](https://pypi.python.org/pypi/auto_api/) [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/) [![Build Status](https://travis-ci.org/fvalverd/AutoApi.svg?branch=master)](https://travis-ci.org/fvalverd/AutoApi) [![Coverage Status](https://coveralls.io/repos/fvalverd/AutoApi/badge.svg)](https://coveralls.io/r/fvalverd/AutoApi) [![Code Climate](https://codeclimate.com/github/fvalverd/AutoApi/badges/gpa.svg)](https://codeclimate.com/github/fvalverd/AutoApi)
 
 The goal of AutoApi is avoid developing an [API REST](https://en.wikipedia.org/wiki/Representational_state_transfer) at the start of a project, making a prototype easier than usual. AutoApi also has an authentication system and multiple APIs are supported.
 
@@ -227,24 +227,19 @@ More info about REST:
 
 ## Dependencies and configuration
 
-#### OpenSSL Ubuntu dependencies
-
-<pre>
-$ sudo apt-get install libffi-dev libssl-dev
-</pre>
-
-#### Python dependencies
+#### Installation
 
 I strongly recommend you to use [virtualenv](https://virtualenv.pypa.io) and [virtualenvwrapper](https://virtualenvwrapper.readthedocs.io).
 
 <pre>
-$ workon autoapi
-(autoapi) $ python setup.py develop
+$ workon api
+(api) $ pip install auto_api
 </pre>
+
 
 #### MongoDB
 
-AutoApi doesn't required modifications on MongoDB configuration to handle APIs, collectios or resources. But, if you want to activate [Authentication](#authentication) and [Authorization](#authorization), as AutoApi uses MongoDB users, it is necessary to set *auth=true* in your *mongodb.cfg* or run *mongod* with the flag *--auth*. If MongoDB was started with the authentication flag but doesn't have an admin user, AutoApi will try to create him using the given [configuration file](#configuration-file).
+AutoApi doesn't required modifications on MongoDB configuration to handle APIs, collectios or resources. But, if you want to activate [Authentication](#authentication) and [Authorization](#authorization), as AutoApi uses MongoDB users, it is necessary to set *auth=true* in your *mongodb.cfg* or run *mongod* with the flag *--auth* and you must to provide the MongoDB admin information inside the [AutoApi configuration file](#configuration-file)
 
 Related info:
 - http://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/
@@ -255,7 +250,7 @@ Related info:
 
 ## Running AutoApi
 
-To start the service AutoApi implements the **\_\_main\_\_.py** file, so after [installing AutoApi](#python-dependencies) it will be created the executable called **autoapi** and the module **auto_api**. Also, remember that if you want to run AutoApi with authentication, you must first [turn on the authentication in MongoDB](#mongodb) and then provide the flags **-a** (or **--auth**) and **-f** (or **--config**) with a configuration file based on *server.cfg.default* (located on this repository) to the following commands:
+After [installing AutoApi](#installation) it will be created an executable called **autoapi** and the python module **auto_api**. Also, remember that if you want to run AutoApi with authentication, you must first [turn on the authentication in MongoDB](#mongodb) and then provide the flags **-a** (or **--auth**) and **-f** (or **--config**) with a configuration file based on *server.cfg.default* (located on this repository) to the following commands:
 
 <pre>
 (api) $ autoapi [[-a] -f server.cfg]
@@ -267,8 +262,14 @@ or
 
 ## Testing AutoApi
 
-To run the AutoApi test there is a script called *run_tests.py*. This script will automatically start and stop two MongoDB servers (one with authentication enabled) for testing purpose only.
+To run the AutoApi test there is a script called *run_tests.py*, that automatically start and stop two MongoDB servers for testing purpose only (one with authentication enabled).
 
 <pre>
-$ ./run_tests.py [nose-parameters]
+(api) $ ./run_tests.py [pytest-parameters]
+</pre>
+
+or
+
+<pre>
+(api) $ python setup.py run_tests [-a '[pytest-parameters]']
 </pre>
