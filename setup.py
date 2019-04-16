@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
 
-VERSION = '2.0.0'
+VERSION = '2.0.1'
 
 
 class RunTests(TestCommand):
@@ -23,7 +23,7 @@ class RunTests(TestCommand):
 
 setup(
     version=VERSION,
-    download_url='https://github.com/fvalverd/AutoApi/tarball/v2.0.0',
+    download_url='https://github.com/fvalverd/AutoApi/tarball/v2.0.1',
     packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
     install_requires=[
         'click>=6.7',

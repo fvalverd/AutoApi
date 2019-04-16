@@ -15,8 +15,6 @@ from .validations import validate_api
 def _get_arguments(view):
     if sys.version_info >= (3, 4):
         return inspect.signature(view).parameters
-    elif sys.version_info >= (3, 0):
-        return inspect.getfullargspec(view).args
     return inspect.getargspec(view).args
 
 
