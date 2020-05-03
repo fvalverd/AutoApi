@@ -11,11 +11,11 @@ from .views import get, post, delete, put, patch
 
 class AutoApi(object):
 
-    def __init__(self, auth=False, cors=True, config_path=None, port=None):
+    def __init__(self, auth=False, cors=True, port=None):
         self.auth = auth
         self.cors = cors
         self.app = Flask(self.__class__.__name__)
-        config_autoapi(self, cors=cors, path=config_path, force_port=port)
+        config_autoapi(self, cors=cors, force_port=port)
 
         # AutoApi operation routes
         self.prefix = 'AutoApi'

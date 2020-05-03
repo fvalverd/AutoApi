@@ -1,3 +1,0 @@
-# MongoDB config
-MONGO_ADMIN = 'admin'
-MONGO_ADMIN_PASS = 'pass'

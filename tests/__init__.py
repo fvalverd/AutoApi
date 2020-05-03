@@ -1,41 +1,21 @@
 # -*- coding: utf-8 -*-
 import json
+import os
 import unittest
+import sys
 
 from auto_api import AutoApi
 from auto_api.mongodb import create_user, admin
 from auto_api.utils import fix_id
 
-
-import sys
-PY3 = sys.version_info >= (3, 0)
-if PY3:
+if sys.version_info >= (3, 0):
     from unittest import mock
 else:
     import mock
 
-PY34_35 = (3, 0) <= sys.version_info < (3, 6)
 
-if PY34_35:
-    from functools import update_wrapper
-    from types import FunctionType
-
-    def copy_func(f):
-        ''' Based on http://stackoverflow.com/a/6528148/190597 '''
-        g = FunctionType(f.__code__, f.__globals__, argdefs=f.__defaults__)
-        g = update_wrapper(g, f)
-        return g
-
-    json_loads_copy = copy_func(json.loads)
-
-    def customized_json(data, *args, **kwargs):
-        if isinstance(data, (bytes, bytearray)):
-            return json_loads_copy(data.decode('utf-8'), *args, **kwargs)
-        return json_loads_copy(data, *args, **kwargs)
-
-
-MONGO_PORT = 27018
-MONGO_AUTH_PORT = 27019
+MONGO_PORT = int(os.environ['MONGO_PORT'])
+MONGO_PORT_AUTH = int(os.environ['MONGO_PORT_AUTH'])
 
 
 class BaseTest(unittest.TestCase):
@@ -46,21 +26,12 @@ class BaseTest(unittest.TestCase):
         cls.api = 'api_tests'
         cls.user = 'user'
         cls.password = 'pass'
-        cls.port = MONGO_AUTH_PORT if auth else MONGO_PORT
+        cls.port = MONGO_PORT_AUTH if auth else MONGO_PORT
         cls.autoapi = AutoApi(auth=auth, port=cls.port)
         cls.app = cls.autoapi.app.test_client()
         if auth:
             cls.remove_user(cls.api, cls.user)
             cls.create_user(cls.api, cls.user, cls.password, ['admin'])
-        if PY34_35:
-            cls.json_loads_patch = mock.patch('json.loads', customized_json)
-            cls.json_loads_patch.start()
-
-    @classmethod
-    def tearDownClass(cls):
-        if PY34_35:
-            cls.json_loads_patch.stop()
-        super(BaseTest, cls).tearDownClass()
 
     @classmethod
     def response_to_headers(cls, response):
@@ -83,11 +54,11 @@ class BaseTest(unittest.TestCase):
 
     def get_admin_headers(self):
         return self.response_to_headers(
-            self.app.post('/login', data={
-                'email': self.app.application.config['MONGO_ADMIN'],
-                'password': self.app.application.config['MONGO_ADMIN_PASS'],
-                'api': 'admin',
-            })
+            self.app.post('/login', data=dict(
+                email=self.app.application.config['MONGO_ADMIN'],
+                password=self.app.application.config['MONGO_ADMIN_PASS'],
+                api='admin',
+            ))
         )
 
     def assertDictContainsSubset(self, a, b):
@@ -116,11 +87,14 @@ class LoggedTest(BaseAuthTest):
 
     @classmethod
     def tearDownClass(cls):
-        cls.app.post('/logout', headers=cls.headers, data={'api': cls.api})
+        cls.app.post('/logout', headers=cls.headers, data=dict(api=cls.api))
         super(LoggedTest, cls).tearDownClass()
 
     def _count_test(self, path, amount):
-        response = self.app.get('/%s/%s' % (self.api, path), headers=self.headers)
+        response = self.app.get(
+            '/{api}/{path}'.format(api=self.api, path=path),
+            headers=self.headers
+        )
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.data)
         self.assertEqual(amount, response_json.get('total'))

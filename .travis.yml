@@ -1,18 +1,66 @@
 dist: xenial
 language: python
-python:
-  - 3.7
-  - 3.6
-  - 3.5
-  - 3.4
-  - 2.7
+env:
+  global:
+    - MONGO_HOST="localhost"
+    - MONGO_PORT="27018"
+    - MONGO_PORT_AUTH="27019"
+    - MONGO_ADMIN="admin"
+    - MONGO_ADMIN_PASS="pass"
+jobs:
+  include:
+    - name: "Python 3.8 on Linux"
+      python: 3.8
+    - name: "Python 3.7 on Linux"
+      python: 3.7
+    - name: "Python 3.6 on Linux"
+      python: 3.6
+    - name: "Python 2.7 on Linux"
+      python: 2.7
+    # - name: "Python 3.7.4 on macOS"
+    #   os: osx
+    #   osx_image: xcode11.4
+    #   language: shell       # 'language: python' is an error on Travis CI macOS
+    #   addons:
+    #     homebrew:
+    #       taps: mongodb/brew
+    #   before_install:
+    #     - brew install mongodb-community
+    - name: "Python 3.8 on Windows"
+      os: windows
+      language: shell       # 'language: python' is an error on Travis CI Windows
+      before_install:
+        - choco install python --version 3.8.2
+      env: PATH=/c/Python38:/c/Python38/Scripts:$PATH
+    - name: "Python 3.7 on Windows"
+      os: windows
+      language: shell       # 'language: python' is an error on Travis CI Windows
+      before_install:
+        - choco install python --version 3.7.7
+      env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
+    - name: "Python 3.6 on Windows"
+      os: windows
+      language: shell       # 'language: python' is an error on Travis CI Windows
+      before_install:
+        - choco install python --version 3.6.8
+      env: PATH=/c/Python36:/c/Python36/Scripts:$PATH
+    - name: "Python 2.7 on Windows"
+      os: windows
+      language: shell       # 'language: python' is an error on Travis CI Windows
+      before_install:
+        - choco install python2
+      env: PATH=/c/Python27:/c/Python27/Scripts:$PATH
 services:
-  - mongodb
+  - docker
 install:
-  - python setup.py develop
+  - docker run -d -p $MONGO_PORT:27017 mongo:latest mongod
+  - docker run -d -p $MONGO_PORT_AUTH:27017 -e MONGO_INITDB_ROOT_USERNAME=$MONGO_ADMIN -e MONGO_INITDB_ROOT_PASSWORD=$MONGO_ADMIN_PASS mongo:latest mongod --auth --bind_ip_all
+  - python -m pip install -U -r requirements-tools.txt
+  - python -m pip install -r requirements.txt -r requirements-dev.txt
 before_script:
-  - pip install coverage python-coveralls
+  - python setup_admin_user.py
 script:
-  - python setup.py test -a '-sv'
-after_script:
-  - coveralls
+  - python -m pytest -v
+# after_script:
+#   - python -m pip install python-coveralls
+#   - coveralls

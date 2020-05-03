@@ -3,7 +3,7 @@ from contextlib import contextmanager
 import uuid
 
 from pymongo import MongoClient
-from pymongo.errors import PyMongoError, DuplicateKeyError
+from pymongo.errors import PyMongoError, DuplicateKeyError, OperationFailure
 
 from .exceptions import Message
 from .messages import unauthenticated
@@ -42,7 +42,9 @@ def _is_original_admin(app, user):
 def get_custom_data(app, api, client, user):
     db = 'admin' if _is_original_admin(app, user) else api
     result = client[api].command('usersInfo', {'user': user, 'db': db})
-    return ((result and result.get('users')) or [{}])[0].get('customData'), db
+    info = ((result and result.get('users')) or [{}])[0]
+    custom_data = info.get('customData') or {}
+    return custom_data, db
 
 
 def create_user(app, api, user, password, roles=None, db_roles=None):
@@ -55,7 +57,7 @@ def create_user(app, api, user, password, roles=None, db_roles=None):
                 roles=db_roles or [],
                 customData={'roles': roles or DEFAULT_ROLES},
             )
-        except DuplicateKeyError:
+        except (DuplicateKeyError, OperationFailure):
             return False
     return True
 
@@ -78,7 +80,10 @@ def update_roles(app, api, user, roles):
                 for role in (data.get('roles') or []) + list(roles.keys())
                 if roles.get(role, True) and role in BUILT_IN_ROLES
             ]
-            client[db].command('updateUser', user, customData=data)
+            try:
+                client[db].command('updateUser', user, customData=data)
+            except OperationFailure:
+                return False
             return True
     return False
 
