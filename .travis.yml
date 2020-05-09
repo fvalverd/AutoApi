@@ -52,10 +52,10 @@ jobs:
       env: PATH=/c/Python27:/c/Python27/Scripts:$PATH
       before_script: # no root user for Windows https://github.com/docker-library/mongo/issues/291
         - export MONGO_AUTH_DIR=$(mktemp -d)
-        - docker run --name temporary_mongodb -d -v $MONGO_AUTH_DIR:/data mongo:latest mongod --bind_ip_all --dbpath=/data
+        - docker run --name temporary_mongodb -d -v $MONGO_AUTH_DIR:C:\db mongo:latest mongod --bind_ip_all --dbpath=C:\db
         - docker exec mongo --eval "db.createUser({user:'$MONGO_ADMIN', pwd:'$MONGO_ADMIN_PASS', roles:[{role:'root', db:'admin'}]})"
         - docker kill temporary_mongodb
-        - docker run -d -p $MONGO_PORT_AUTH:27017 -v $MONGO_AUTH_DIR:/data mongo:latest mongod --auth --bind_ip_all --dbpath=/data
+        - docker run -d -p $MONGO_PORT_AUTH:27017 -v $MONGO_AUTH_DIR:C:\db mongo:latest mongod --auth --bind_ip_all --dbpath=C:\db
 services:
   - docker
 install:
