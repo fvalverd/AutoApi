@@ -2,7 +2,7 @@
 import unittest
 
 from auto_api import AutoApi
-from . import MONGO_PORT, MONGO_AUTH_PORT
+from . import MONGO_PORT, MONGO_PORT_AUTH
 
 
 class AutoApiConfigTest(unittest.TestCase):
@@ -21,10 +21,10 @@ class AutoApiConfigTest(unittest.TestCase):
         self._test_header(AutoApi(port=MONGO_PORT, cors=False))
 
     def test_access_control_allow_origin_header_with_auth(self):
-        self._test_header(AutoApi(auth=True, port=MONGO_AUTH_PORT))
+        self._test_header(AutoApi(auth=True, port=MONGO_PORT_AUTH))
 
     def test_access_control_allow_origin_header_with_auth_no_cors(self):
-        self._test_header(AutoApi(auth=True, port=MONGO_AUTH_PORT, cors=False))
+        self._test_header(AutoApi(auth=True, port=MONGO_PORT_AUTH, cors=False))
 
 
 if __name__ == '__main__':

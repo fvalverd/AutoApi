@@ -3,8 +3,6 @@ import datetime
 import json
 
 from bson.objectid import ObjectId
-
-
 from flask import Response
 
 

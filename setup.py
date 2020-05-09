@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
+import os
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
 
-VERSION = '2.0.2'
-URL = 'https://github.com/fvalverd/AutoApi/tarball/v{}'.format(VERSION)
+BASE_DIR = os.path.dirname(__file__)
+VERSION = '2.1.0'
+URL = 'https://github.com/fvalverd/AutoApi'
+DOWNLOAD_URL = '{}/tarball/v{}'.format(URL, VERSION)
+REQUIREMENTS = os.path.join(BASE_DIR, 'requirements.txt')
+REQUIREMENTS_DEV = os.path.join(BASE_DIR, 'requirements-dev.txt')
 
 
 class RunTests(TestCommand):
@@ -22,24 +27,20 @@ class RunTests(TestCommand):
         run(args=[shlex.split(self.runtests_args)])
 
 
+def read_requirements(path):
+    with open(path) as file:
+        return file.read()
+
+
 setup(
-    version=VERSION,
-    download_url=URL,
-    packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
-    install_requires=[
-        'click>=6.7',
-        'Flask>=1.0.2',
-        'Flask-Cors>=3.0.7',
-        'pymongo>=3.7.2,<4'
-    ],
-    tests_require=[
-        'mock;python_version<"3.0"',
-        'mongobox>=0.1.8',
-        'pytest',
-        'pytest-cov'
-    ],
     cmdclass={'run_tests': RunTests},
-    entry_points={
-        'console_scripts': ['autoapi = auto_api.__main__:main']
-    }
+    download_url=DOWNLOAD_URL,
+    entry_points={'console_scripts': ['autoapi = auto_api.__main__:main']},
+    install_requires=read_requirements(REQUIREMENTS),
+    packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
+    package_data={'': [REQUIREMENTS]},
+    # setup_requires=['pytest-runner>=2.0'],
+    tests_require=read_requirements(REQUIREMENTS_DEV),
+    url=URL,
+    version=VERSION
 )

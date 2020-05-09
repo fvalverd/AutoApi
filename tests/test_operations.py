@@ -379,7 +379,7 @@ class TestEditRoles(MoviesTest):
         response = self.app.post(
             '/roles',
             headers=self.headers,
-            data=json.dumps({'email': 'fake_user', 'api': self.api, 'roles': ['read']}),
+            data=json.dumps({'email': 'fake_user', 'api': self.api, 'roles': {'read': True}}),
             content_type='application/json'
         )
         self.assertEqual(response.status_code, 403)
