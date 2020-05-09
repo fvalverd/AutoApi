@@ -68,5 +68,5 @@ before_script:
   - python setup_admin_user.py
 script:
   - python -m pytest -v
-after_script:
-  - test $TRAVIS_BRANCH = "master" && python -m pip install coveralls && coveralls
+# after_script:
+#   - test $TRAVIS_BRANCH = "master" && python -m pip install coveralls && coveralls
