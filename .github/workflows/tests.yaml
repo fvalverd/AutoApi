@@ -1,4 +1,4 @@
-name: Test Auto-Api
+name: tests
 on:
   push:
     branches: [ master ]
@@ -46,3 +46,17 @@ jobs:
         run: python setup_admin_user.py
       - name: Run unit, integration and functional tests
         run: python -m pytest -v
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel: true
+  finish:
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+    - name: Coveralls Finished
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.github_token }}
+        parallel-finished: true
