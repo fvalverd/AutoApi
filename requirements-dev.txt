@@ -4,3 +4,4 @@ mongobox>=0.1.8
 parameterized==0.7.4
 pytest
 pytest-cov
+python-coveralls
