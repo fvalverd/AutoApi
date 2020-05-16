@@ -28,6 +28,8 @@ class RunTests(TestCommand):
 
 
 def read_requirements(path):
+    if not os.path.exists(path):
+        return None
     with open(path) as file:
         return file.read()
 
@@ -35,7 +37,7 @@ def read_requirements(path):
 setup(
     cmdclass={'run_tests': RunTests},
     download_url=DOWNLOAD_URL,
-    entry_points={'console_scripts': ['autoapi = auto_api.__main__:main']},
+    entry_points={'console_scripts': ['autoapi = auto_api.__main__:cli']},
     install_requires=read_requirements(REQUIREMENTS),
     packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
     package_data={'': [REQUIREMENTS]},

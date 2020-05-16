@@ -31,7 +31,8 @@ def _read_config(autoapi, force_port=None):
     if force_port is not None:
         autoapi.app.config[MONGO_KEYS['port']] = force_port
     elif os.environ.get(MONGO_KEYS['port']):
-        autoapi.app.config[MONGO_KEYS['port']] = os.environ[MONGO_KEYS['port']]
+        port = int(os.environ[MONGO_KEYS['port']])
+        autoapi.app.config[MONGO_KEYS['port']] = port
     else:
         raise AutoApiMissingAdminConfig('Check your configuration !')
     if autoapi.auth:

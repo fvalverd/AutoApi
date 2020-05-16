@@ -3,13 +3,13 @@ from __future__ import print_function
 from distutils.spawn import find_executable
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 
 import pytest
 from mongobox import MongoBox
-
-from setup_admin_user import create_admin
+from pymongo import MongoClient
 
 
 def read_or_set(key, default):
@@ -36,6 +36,21 @@ def _get_mongo_paths():
     return paths
 
 
+def update_admin():
+    client = MongoClient(host=MONGO_HOST, port=MONGO_PORT_AUTH)
+    data = dict(pwd=MONGO_ADMIN_PASS, roles=[{'role': 'root', 'db': 'admin'}])
+    client.admin.command('createUser', MONGO_ADMIN, **data)
+    client.close()
+    python_bin = find_executable('python')
+    envs = {
+        'MONGO_HOST': MONGO_HOST,
+        'MONGO_PORT': str(MONGO_PORT_AUTH),
+        'MONGO_ADMIN': MONGO_ADMIN,
+        'MONGO_ADMIN_PASS': MONGO_ADMIN_PASS
+    }
+    subprocess.Popen([python_bin, '-m', 'auto_api', 'update-admin'], env=envs)
+
+
 def run(args=None):
     print('\nStarting mongo servers')
     args = args or []
@@ -60,12 +75,7 @@ def run(args=None):
         print('OK')
         statusAuth = True
         print(' - admin user on server auth...', end=' '), sys.stdout.flush()
-        create_admin(
-            host=MONGO_HOST,
-            port=MONGO_PORT_AUTH,
-            name=MONGO_ADMIN,
-            password=MONGO_ADMIN_PASS
-        )
+        update_admin()
         print('OK\n'), sys.stdout.flush()
 
         # run pytest
