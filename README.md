@@ -2,8 +2,11 @@
 
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/auto_api.svg)](https://pypi.org/project/auto-api/)
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
-[![PyPI](https://img.shields.io/pypi/v/auto-api)](https://pypi.org/project/auto-api/)
+
 [![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/fvalverd/AutoApi?sort=semver)](https://github.com/fvalverd/AutoApi/releases)
+[![PyPI](https://img.shields.io/pypi/v/auto-api)](https://pypi.org/project/auto-api/)
+[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/felipevalverde/autoapi?label=docker&sort=semver)](https://hub.docker.com/repository/docker/felipevalverde/autoapi)
+
 [![tests](https://github.com/fvalverd/AutoApi/workflows/tests/badge.svg?branch=master)](https://github.com/fvalverd/AutoApi/actions?query=workflow%3A%22tests%22)
 [![Build Status](https://travis-ci.org/fvalverd/AutoApi.svg?branch=master)](https://travis-ci.org/fvalverd/AutoApi?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/fvalverd/AutoApi/badge.svg?branch=master)](https://coveralls.io/github/fvalverd/AutoApi?branch=master)

@@ -1,9 +1,11 @@
 name: tests
+
 on:
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+
 jobs:
   tests:
     strategy:
@@ -43,7 +45,7 @@ jobs:
       #     docker run -d -p ${{ env.MONGO_PORT_AUTH }}:27017 -v $MONGO_AUTH_DIR:C:\db mongo:latest mongod --auth --bind_ip_all --dbpath=C:\db
       #   if: ${{ matrix.platform == 'windows-latest' }}
       - name: Set MongoDB root user as Auto-Api admin
-        run: python setup_admin_user.py
+        run: python -m auto_api update-admin --port ${{ env.MONGO_PORT_AUTH }}
       - name: Run unit, integration and functional tests
         run: python -m pytest -v
       - name: Coveralls
