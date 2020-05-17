@@ -65,7 +65,7 @@ install:
   - docker run -d -p $MONGO_PORT:27017 mongo:$MONGO_VERSION mongod --bind_ip_all
 before_script:
   - docker run -d -p $MONGO_PORT_AUTH:27017 -e MONGO_INITDB_ROOT_USERNAME=$MONGO_ADMIN -e MONGO_INITDB_ROOT_PASSWORD=$MONGO_ADMIN_PASS mongo:$MONGO_VERSION mongod --auth --bind_ip_all
-  - python setup_admin_user.py
+  - python -m auto_api update-admin --port $MONGO_PORT_AUTH
 script:
   - python -m pytest -v
 # after_script:

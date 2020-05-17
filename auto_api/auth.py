@@ -63,8 +63,8 @@ def secure(app, view, role=None, api=None, auth=False, no_api=False):
 @contextmanager
 def check(app, api, role, auth=True):
     authenticated, authorized = not auth, not auth
-    if auth and 'X-Email' in request.headers and 'X-Token' in request.headers:
-        email, token = request.headers['X-Email'], request.headers['X-Token']
+    email, token = [request.headers.get(key) for key in ('X-Email', 'X-Token')]
+    if auth and email and token:
         with admin(app) as client:
             info, _ = get_custom_data(app, api, client, email)
             if info is not None and info.get('tokens'):

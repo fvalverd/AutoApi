@@ -3,13 +3,13 @@ from __future__ import print_function
 from distutils.spawn import find_executable
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 
 import pytest
-from mongobox import MongoBox
-
-from setup_admin_user import create_admin
+import mongobox
+from pymongo import MongoClient
 
 
 def read_or_set(key, default):
@@ -36,21 +36,44 @@ def _get_mongo_paths():
     return paths
 
 
+def update_admin():
+    client = MongoClient(host=MONGO_HOST, port=MONGO_PORT_AUTH)
+    data = dict(pwd=MONGO_ADMIN_PASS, roles=[{'role': 'root', 'db': 'admin'}])
+    client.admin.command('createUser', MONGO_ADMIN, **data)
+    client.close()
+    python_bin = find_executable('python')
+    envs = {
+        'MONGO_HOST': MONGO_HOST,
+        'MONGO_PORT': str(MONGO_PORT_AUTH),
+        'MONGO_ADMIN': MONGO_ADMIN,
+        'MONGO_ADMIN_PASS': MONGO_ADMIN_PASS
+    }
+    subprocess.Popen([python_bin, '-m', 'auto_api', 'update-admin'], env=envs)
+
+
+def fix_mongo_42():
+    pos = mongobox.mongobox.DEFAULT_ARGS.index("--smallfiles")
+    if pos >= 0:
+        mongobox.mongobox.DEFAULT_ARGS.pop(pos)
+
+
 def run(args=None):
+    fix_mongo_42()
     print('\nStarting mongo servers')
     args = args or []
     path, path_auth = _get_mongo_paths()
-    params = dict(mongod_bin=MONGOD_BIN, db_path=path, port=MONGO_PORT)
-    mongobox = MongoBox(**params)
-    params.update(dict(auth=True, db_path=path_auth, port=MONGO_PORT_AUTH))
-    mongoboxAuth = MongoBox(**params)
+    default_params = dict(prealloc=True, mongod_bin=MONGOD_BIN)
+    params = dict(db_path=path, port=MONGO_PORT, **default_params)
+    mongoboxNoAuth = mongobox.MongoBox(**params)
+    params.update(auth=True, db_path=path_auth, port=MONGO_PORT_AUTH)
+    mongoboxAuth = mongobox.MongoBox(**params)
     status = False
     statusAuth = False
 
     try:
         # start server
         print(' - server...', end=' '), sys.stdout.flush()
-        mongobox.start()
+        mongoboxNoAuth.start()
         status = True
         print('OK')
 
@@ -60,29 +83,24 @@ def run(args=None):
         print('OK')
         statusAuth = True
         print(' - admin user on server auth...', end=' '), sys.stdout.flush()
-        create_admin(
-            host=MONGO_HOST,
-            port=MONGO_PORT_AUTH,
-            name=MONGO_ADMIN,
-            password=MONGO_ADMIN_PASS
-        )
+        update_admin()
         print('OK\n'), sys.stdout.flush()
 
         # run pytest
-        pytest.main(*args)
+        exit(pytest.main(*args))
     except Exception:
-        raise
+        exit(10)
     finally:
         # stop servers
         if status:
             print('\n\nStoping mongo servers:')
             print(' - server...', end=' '), sys.stdout.flush()
-            mongobox.stop()
+            mongoboxNoAuth.stop()
             print('OK')
             if statusAuth:
                 print(' - server auth...', end=' '), sys.stdout.flush()
                 mongoboxAuth.stop()
-                print('OK')
+                print('OK\n'), sys.stdout.flush()
 
 
 if __name__ == '__main__':
