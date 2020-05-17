@@ -9,12 +9,12 @@ from .operations import invalid_operation, login, logout, password, roles, user
 from .views import get, post, delete, put, patch
 
 
-class AutoApi(object):
+class AutoApi(Flask):
 
     def __init__(self, auth=False, cors=True, port=None):
+        super(AutoApi, self).__init__(self.__class__.__name__)
         self.auth = auth
         self.cors = cors
-        self.app = Flask(self.__class__.__name__)
         config_autoapi(self, cors=cors, force_port=port)
 
         # AutoApi operation routes
@@ -30,22 +30,22 @@ class AutoApi(object):
         self.load_api_rest()
 
     def welcome(self):
-        return message(u"Welcome to AutoApi.")
+        return message('Welcome to AutoApi.')
+
+    def _name(self, view):
+        return '{prefix}.{name}'.format(prefix=self.prefix, name=view.__name__)
 
     def add(
-        self, path, view, api=None, no_auth=False,
+        self, path, view, api=None, skip_auth=False,
         method='POST', role=None, all_methods=False, no_api=False
     ):
         """" Bind path with view on AutoApi """
 
-        self.app.add_url_rule(
-            rule=path,
-            endpoint=u"{}.{}".format(self.prefix, view.__name__),
-            view_func=secure(
-                self.app, view, role=role, api=api,
-                auth=self.auth and not no_auth, no_api=no_api
-            ),
-            methods=all_methods and list(http_method_funcs) or [method],
+        auth = self.auth and not skip_auth
+        params = dict(view=view, role=role, api=api, auth=auth, no_api=no_api)
+        self.add_url_rule(
+            path, endpoint=self._name(view), view_func=secure(self, **params),
+            methods=all_methods and list(http_method_funcs) or [method]
         )
 
     def route(self, path, **kwargs):
@@ -57,22 +57,17 @@ class AutoApi(object):
 
     def load_operations(self):
         """ Bind operations related with Authentication & Authorization """
+        skip_all_params = dict(skip_auth=True, all_methods=True, no_api=True)
 
         # AutoApi welcome message
-        self.add(
-            '/', lambda: self.welcome(), no_auth=True,
-            all_methods=True, no_api=True
-        )
+        self.add('/', lambda: self.welcome(), **skip_all_params)
 
         # Invalid operation message
-        self.add(
-            '/<api>', invalid_operation, no_auth=True,
-            all_methods=True, no_api=True
-        )
+        self.add('/<api>', invalid_operation, **skip_all_params)
 
         # AutoApi auth operations
         if self.auth:
-            self.add('/login', login, no_auth=True)
+            self.add('/login', login, skip_auth=True)
             self.add('/logout', logout)
             self.add('/user', user, role='admin')
             self.add('/password', password)

@@ -18,7 +18,7 @@ class AutoApiConfigAuthTest(unittest.TestCase):
 
     def test_default(self):
         autoapi = self._create_autoapi()
-        self.assertIsNotNone(autoapi.app)
+        self.assertIsNotNone(autoapi)
 
     @parameterized.expand((
         ('host', {MONGO_KEYS['host']: ''}),

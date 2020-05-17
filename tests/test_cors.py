@@ -8,7 +8,7 @@ from . import MONGO_PORT, MONGO_PORT_AUTH
 class AutoApiConfigTest(unittest.TestCase):
 
     def _test_header(self, autoapi):
-        response = autoapi.app.test_client().get('/')
+        response = autoapi.test_client().get('/')
         (self.assertIn if autoapi.cors else self.assertNotIn)(
             ('Access-Control-Allow-Origin', '*'),
             response.headers.to_wsgi_list()

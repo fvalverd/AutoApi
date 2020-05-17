@@ -8,7 +8,7 @@ import sys
 import tempfile
 
 import pytest
-from mongobox import MongoBox
+import mongobox
 from pymongo import MongoClient
 
 
@@ -51,21 +51,29 @@ def update_admin():
     subprocess.Popen([python_bin, '-m', 'auto_api', 'update-admin'], env=envs)
 
 
+def fix_mongo_42():
+    pos = mongobox.mongobox.DEFAULT_ARGS.index("--smallfiles")
+    if pos >= 0:
+        mongobox.mongobox.DEFAULT_ARGS.pop(pos)
+
+
 def run(args=None):
+    fix_mongo_42()
     print('\nStarting mongo servers')
     args = args or []
     path, path_auth = _get_mongo_paths()
-    params = dict(mongod_bin=MONGOD_BIN, db_path=path, port=MONGO_PORT)
-    mongobox = MongoBox(**params)
-    params.update(dict(auth=True, db_path=path_auth, port=MONGO_PORT_AUTH))
-    mongoboxAuth = MongoBox(**params)
+    default_params = dict(prealloc=True, mongod_bin=MONGOD_BIN)
+    params = dict(db_path=path, port=MONGO_PORT, **default_params)
+    mongoboxNoAuth = mongobox.MongoBox(**params)
+    params.update(auth=True, db_path=path_auth, port=MONGO_PORT_AUTH)
+    mongoboxAuth = mongobox.MongoBox(**params)
     status = False
     statusAuth = False
 
     try:
         # start server
         print(' - server...', end=' '), sys.stdout.flush()
-        mongobox.start()
+        mongoboxNoAuth.start()
         status = True
         print('OK')
 
@@ -79,20 +87,20 @@ def run(args=None):
         print('OK\n'), sys.stdout.flush()
 
         # run pytest
-        pytest.main(*args)
+        exit(pytest.main(*args))
     except Exception:
-        raise
+        exit(10)
     finally:
         # stop servers
         if status:
             print('\n\nStoping mongo servers:')
             print(' - server...', end=' '), sys.stdout.flush()
-            mongobox.stop()
+            mongoboxNoAuth.stop()
             print('OK')
             if statusAuth:
                 print(' - server auth...', end=' '), sys.stdout.flush()
                 mongoboxAuth.stop()
-                print('OK')
+                print('OK\n'), sys.stdout.flush()
 
 
 if __name__ == '__main__':

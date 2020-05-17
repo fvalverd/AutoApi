@@ -18,7 +18,7 @@ def cli():
 @click.option('--reloader', '-r', help='Use Flask reloader', is_flag=True)
 def run(auth, debug, host, port, reloader):
     autoapi = AutoApi(auth=auth)
-    autoapi.app.run(
+    autoapi.run(
         host=host, port=port, use_reloader=reloader, debug=debug, threaded=True
     )
 
@@ -26,9 +26,9 @@ def run(auth, debug, host, port, reloader):
 @cli.command()
 @click.option('--port', '-p', help='MongoDB port', default=None, type=int)
 def update_admin(port):
-    autoapi = AutoApi(auth=True, port=int(port))
-    name = autoapi.app.config[ADMIN_KEYS['name']]
-    update_roles(autoapi.app, api='admin', user=name, roles={'admin': True})
+    autoapi = AutoApi(auth=True, port=port)
+    name = autoapi.config[ADMIN_KEYS['name']]
+    update_roles(autoapi, api='admin', user=name, roles={'admin': True})
 
 
 if __name__ == '__main__':

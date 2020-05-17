@@ -28,17 +28,14 @@ class BaseTest(unittest.TestCase):
         cls.password = 'pass'
         cls.port = MONGO_PORT_AUTH if auth else MONGO_PORT
         cls.autoapi = AutoApi(auth=auth, port=cls.port)
-        cls.app = cls.autoapi.app.test_client()
+        cls.app = cls.autoapi.test_client()
         if auth:
             cls.remove_user(cls.api, cls.user)
             cls.create_user(cls.api, cls.user, cls.password, ['admin'])
 
     @classmethod
     def response_to_headers(cls, response):
-        return {
-            'X-Email': response.headers.get('X-Email'),
-            'X-Token': response.headers.get('X-Token')
-        }
+        return {k: response.headers.get(k) for k in ('X-Email', 'X-Token')}
 
     @classmethod
     def create_user(cls, api, user, password, roles):

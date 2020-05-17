@@ -4,3 +4,4 @@ wheel<=0.33.6;python_version<"3.0"
 pip;python_version>="3.6"
 setuptools;python_version>="3.6"
 wheel;python_version>="3.6"
+gunicorn

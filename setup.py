@@ -41,7 +41,6 @@ setup(
     install_requires=read_requirements(REQUIREMENTS),
     packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
     package_data={'': [REQUIREMENTS]},
-    # setup_requires=['pytest-runner>=2.0'],
     tests_require=read_requirements(REQUIREMENTS_DEV),
     url=URL,
     version=VERSION

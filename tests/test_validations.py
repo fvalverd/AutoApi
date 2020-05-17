@@ -60,7 +60,7 @@ class TestCaseSensitive(BaseAuthTest):
 
 class TestDateTimeData(BaseTest):
     def setUp(self):
-        client = get_client(self.autoapi.app)
+        client = get_client(self.autoapi)
         client[self.api].dates.drop()
 
     def test_autoapi_datetime(self):
@@ -68,7 +68,7 @@ class TestDateTimeData(BaseTest):
         date = datetime.datetime(2019, 4, 14, 18, 30, 5)
 
         # Create a date
-        client = get_client(self.autoapi.app)
+        client = get_client(self.autoapi)
         result = client[self.api][collection].insert_one({'date': date})
         client.close()
         oid = str(result.inserted_id)
