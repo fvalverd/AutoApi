@@ -3,6 +3,7 @@ name: docker
 # on:
 #   release:
 #     types: [published]
+on: [push]
 
 jobs:
   publish:
