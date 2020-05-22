@@ -5,7 +5,7 @@ from setuptools.command.test import test as TestCommand
 
 
 BASE_DIR = os.path.dirname(__file__)
-VERSION = '2.2.1'
+VERSION = '2.2.2'
 URL = 'https://github.com/fvalverd/AutoApi'
 DOWNLOAD_URL = '{}/tarball/v{}'.format(URL, VERSION)
 REQUIREMENTS = os.path.join(BASE_DIR, 'requirements.txt')
