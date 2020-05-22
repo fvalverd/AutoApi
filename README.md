@@ -5,7 +5,7 @@
 
 [![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/fvalverd/AutoApi?sort=semver)](https://github.com/fvalverd/AutoApi/releases)
 [![PyPI](https://img.shields.io/pypi/v/auto-api)](https://pypi.org/project/auto-api/)
-[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/felipevalverde/autoapi?label=docker&sort=semver)](https://hub.docker.com/repository/docker/felipevalverde/autoapi)
+[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/felipevalverde/autoapi?label=docker&sort=semver)](https://hub.docker.com/r/felipevalverde/autoapi)
 
 [![tests](https://github.com/fvalverd/AutoApi/workflows/tests/badge.svg?branch=master)](https://github.com/fvalverd/AutoApi/actions?query=workflow%3A%22tests%22)
 [![Build Status](https://travis-ci.org/fvalverd/AutoApi.svg?branch=master)](https://travis-ci.org/fvalverd/AutoApi?branch=master)
@@ -16,13 +16,21 @@ The goal of AutoApi is avoid developing an [API REST](https://en.wikipedia.org/w
 
 ## Quickstart
 
-Assuming you have MongoDB server running in *localhost* on the default port without authentication, AutoApi starts as:
+Assuming you have MongoDB server running in *localhost* on the default port *27017* without authentication, AutoApi can be started as following:
 
+##### Docker container
+```shell
+$ docker run -it -e MONGO_HOST=localhost -e MONGO_PORT=27017 felipevalverde/autoapi:latest
+  ...
+  Listening at: http://0.0.0.0:8686
+```
+
+##### Python module
 ```shell
 $ workon api
 (api) $ pip install auto_api
-(api) $ autoapi
-  * Running on http://localhost:8686/ (Press CTRL+C to quit)
+(api) $ MONGO_HOST=localhost MONGO_PORT=27017 python -m auto_api run
+  * Running on http://0.0.0.0:8686/ (Press CTRL+C to quit)
   ...
 ```
 
@@ -89,18 +97,16 @@ And the response will be:
 
 ## How does AutoApi work?
 
-AutoApi was develop on [Python](https://www.python.org/) using [Flask](http://flask.pocoo.org/) and [MongoDB](https://www.mongodb.com/), it was thought to support multiples API because AutoApi uses a database to represent an API, thus to differentiate between two APIs it is necessary to add the api name as a prefix in the URL. For instance, to retrieve all the movies from *imdb-copy* API it is necessary to do a **GET** to **/imdb-copy/movies**, but to retrieve the movies from **rottentomatoes-copy** API the URL is **/rottentomatoes-copy/movies**.
+AutoApi was develop on [Python](https://www.python.org/) using [Flask](http://flask.pocoo.org/) and [MongoDB](https://www.mongodb.com/), it was thought to support multiples API because AutoApi uses each database to represent each API. This means that to differentiate between two APIs it is necessary to add the API name as a prefix in the URL. For instance, to retrieve all the movies from *imdb-copy* API it is necessary to do a **GET** to **/imdb-copy/movies**, and to retrieve the movies from **rottentomatoes-copy** API the URL is **/rottentomatoes-copy/movies**.
 
-Another important feature of AutoApi is the authentication, but authentication in this develop is at API level, so users can not be shared between APIs, the reason is because AutoApi uses MongoDB users instead of using a collection to store them, so they are related to a database and AutoApi consider a database as an API.
+Another important AutoApi's feature is the authentication, but authentication in for this tool is at API level, this means that users can not be shared between APIs. The reason why users can not be shared is because AutoApi uses MongoDB users instead of a collection to store them, so they are strictly related to a database and as AutoApi is considering a database as an API they are isolated per database.
 
-### Configuration file
-As AutoApi uses MongoDB to store the data, it is necessary to know the location of the database, by default AutoApi will try to connect to the default connection of MongoDB (*localhost*, *27017*) unless a configuration file is given.
+### Configuration
 
-The configuration file stores the configuration for the MongoDB connection (including the authentication credentials), there is a template on this repository that show the syntax and the options, the template is called *server.cfg.default*.
+AutoApi uses MongoDB to store all the neccesary data, then it is necessary to know the location of the database, this means that next environment variables **must be provided**: *MONGO_HOST* and *MONGO_PORT*.
 
-AutoApi can receive a configuration file using two methods, one is defining an environment variable with the name **AUTOAPI_SETTINGS** where the value is the file path. The other way is passing the parameter **config_path** to the constructor of AutoApi object with the file path.
+In the same way, if authentication is needed, the next environment variables must be provided too: *MONGO_ADMIN* and *MONGO_ADMIN_PASS*.
 
-If you are going to use the given script to run AutoApi, you can provide [the configuration file as a parameter with the flag *-f*](#running-autoapi), that script uses one of the previous options.
 
 ## **AutoApi features**
 
@@ -108,7 +114,7 @@ If you are going to use the given script to run AutoApi, you can provide [the co
 
 AutoApi authentication is optional, by default it is not activated. To activate it is necessary:
  - [MongoDB auth](#mongodb) activated
- - [AutoApi configuration file](#configuration-file) filled
+ - [AutoApi admin configurations](#configuration)
  - [Run AutoApi server](running-autoapi) with --auth flag
 
 #### Authentication
@@ -239,17 +245,27 @@ More info about REST:
 
 #### Installation
 
-I strongly recommend you to use [virtualenv](https://virtualenv.pypa.io) and [virtualenvwrapper](https://virtualenvwrapper.readthedocs.io).
+##### Docker container
 
-<pre>
+You can pull the latest docker image as following:
+
+```shell
+docker pull felipevalverde/autoapi:latest
+```
+
+##### Python module
+
+You can install the latest python module. I strongly recommend you to use [virtualenv](https://virtualenv.pypa.io) and [virtualenvwrapper](https://virtualenvwrapper.readthedocs.io) as following:
+
+```shell
 $ workon api
 (api) $ pip install auto_api
-</pre>
+```
 
 
 #### MongoDB
 
-AutoApi doesn't required modifications on MongoDB configuration to handle APIs, collectios or resources. But, if you want to activate [Authentication](#authentication) and [Authorization](#authorization), as AutoApi uses MongoDB users, it is necessary to set *auth=true* in your *mongodb.cfg* or run *mongod* with the flag *--auth* and you must to provide the MongoDB admin information inside the [AutoApi configuration file](#configuration-file)
+AutoApi doesn't required modifications on MongoDB configuration to handle APIs, collectios or resources. But, if you want to activate [Authentication](#authentication) and [Authorization](#authorization), as AutoApi uses MongoDB users, it is necessary to set *auth=true* in your *mongodb.cfg* or run *mongod* with the flag *--auth* and provide the neccesary [AutoApi environment variables](#configuration).
 
 Related info:
 - http://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/
@@ -260,26 +276,28 @@ Related info:
 
 ## Running AutoApi
 
-After [installing AutoApi](#installation) it will be created an executable called **autoapi** and the python module **auto_api**. Also, remember that if you want to run AutoApi with authentication, you must first [turn on the authentication in MongoDB](#mongodb) and then provide the flags **-a** (or **--auth**) and **-f** (or **--config**) with a configuration file based on *server.cfg.default* (located on this repository) to the following commands:
+After [installing AutoApi](#installation) it will be created an executable called **autoapi** and the python module **auto_api**. Also, remember that if you want to run AutoApi with authentication, you must first [turn on the authentication in MongoDB](#mongodb) and then provide the flag **--auth**.
 
-<pre>
-(api) $ autoapi [[-a] -f server.cfg]
-</pre>
+```shell
+(api) $ autoapi run [ --auth ]
+```
+
 or
-<pre>
-(api) $ python -m auto_api [[-a] -f server.cfg]
-</pre>
+
+```shell
+(api) $ python -m auto_api run [ --auth ]
+```
 
 ## Testing AutoApi
 
 To run the AutoApi test there is a script called *run_tests.py*, that automatically start and stop two MongoDB servers for testing purpose only (one with authentication enabled).
 
-<pre>
-(api) $ ./run_tests.py [pytest-parameters]
-</pre>
+```shell
+(api) $ ./run_tests.py
+```
 
 or
 
-<pre>
-(api) $ python setup.py run_tests [-a '[pytest-parameters]']
-</pre>
+```shell
+(api) $ python setup.py run_tests [ -a '[pytest-parameters]' ]
+```
