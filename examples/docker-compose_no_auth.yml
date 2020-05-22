@@ -1,0 +1,13 @@
+version: '3.5'
+services:
+  mongo:
+    image: mongo:latest
+  autoapi:
+    image: felipevalverde/autoapi:latest
+    depends_on:
+      - mongo
+    ports:
+      - 8686:8686
+    environment:
+      - MONGO_HOST=mongo
+      - MONGO_PORT=27017
