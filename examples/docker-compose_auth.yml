@@ -1,0 +1,21 @@
+version: '3.5'
+services:
+  mongo:
+    image: mongo:latest
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=pass
+    ports:
+      - 27017:27017
+    command: "mongod --auth"
+  autoapi:
+    image: felipevalverde/autoapi:latest
+    depends_on:
+      - mongo
+    ports:
+      - 8686:8686
+    environment:
+      - MONGO_HOST=mongo
+      - MONGO_PORT=27017
+      - MONGO_ADMIN=admin
+      - MONGO_ADMIN_PASS=pass
